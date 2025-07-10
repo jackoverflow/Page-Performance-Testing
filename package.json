@@ -1,0 +1,29 @@
+{
+  "name": "page-speed-dashboard",
+  "version": "1.0.0",
+  "description": "Page Speed Testing Dashboard with Playwright and Lighthouse",
+  "main": "dashboard-server.js",
+  "scripts": {
+    "start": "node dashboard-server.js",
+    "test:perf": "playwright test --project=performance",
+    "test": "playwright test",
+    "dashboard": "node dashboard-server.js"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.40.0",
+    "express": "^4.21.2",
+    "lighthouse": "^12.7.1",
+    "playwright": "^1.53.2",
+    "playwright-lighthouse": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "playwright",
+    "lighthouse",
+    "performance",
+    "testing",
+    "dashboard"
+  ]
+}

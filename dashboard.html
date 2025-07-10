@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Speed Testing Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 32px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section h2 {
+            color: #374151;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .url-inputs {
+            space-y: 12px;
+        }
+
+        .url-input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .url-input-group:hover {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #059669;
+            color: white;
+            font-size: 16px;
+            padding: 16px 24px;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            min-width: 40px;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .add-url-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .test-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .threshold-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .threshold-group {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .threshold-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .threshold-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .status {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status.error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .reports-section {
+            margin-top: 32px;
+            padding: 24px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .report-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .report-card h4 {
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .report-link {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .report-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 24px 20px;
+            }
+            
+            .url-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .threshold-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Page Speed Dashboard</h1>
+            <p>Powered by Playwright & Lighthouse</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>
+                    🌐 URLs to Test
+                </h2>
+                <div id="urlInputs" class="url-inputs">
+                    <!-- URL inputs will be added here dynamically -->
+                </div>
+                <div class="add-url-container">
+                    <button id="addUrlBtn" class="btn btn-primary">
+                        ➕ Add URL
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ Test Configuration</h2>
+                <div class="threshold-controls">
+                    <div class="threshold-group">
+                        <label for="performanceThreshold">Performance Threshold</label>
+                        <input type="number" id="performanceThreshold" class="threshold-input" value="75" min="0" max="100">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="accessibilityThreshold">Accessibility Threshold</label>
+                        <input type="number" id="accessibilityThreshold" class="threshold-input" value="90" min="0" max="100">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="seoThreshold">SEO Threshold</label>
+                        <input type="number" id="seoThreshold" class="threshold-input" value="85" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-controls">
+                <button id="runTestsBtn" class="btn btn-success">
+                    🧪 Run Performance Tests
+                </button>
+            </div>
+
+            <div id="status" class="status"></div>
+
+            <div class="reports-section">
+                <h2>📊 Recent Reports</h2>
+                <div id="reportsGrid" class="reports-grid">
+                    <!-- Reports will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PageSpeedDashboard {
+            constructor() {
+                this.urlInputs = document.getElementById('urlInputs');
+                this.addUrlBtn = document.getElementById('addUrlBtn');
+                this.runTestsBtn = document.getElementById('runTestsBtn');
+                this.status = document.getElementById('status');
+                this.reportsGrid = document.getElementById('reportsGrid');
+                
+                this.init();
+            }
+
+            init() {
+                // Add initial URL inputs
+                this.addUrlInput('https://beachwoodhomes.com.au/display-homes');
+                this.addUrlInput('https://beachwoodhomes.com.au/home-designs');
+                this.addUrlInput('');
+
+                // Event listeners
+                this.addUrlBtn.addEventListener('click', () => this.addUrlInput(''));
+                this.runTestsBtn.addEventListener('click', () => this.runTests());
+
+                // Load existing reports
+                this.loadReports();
+            }
+
+            addUrlInput(value = '') {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'url-input-group';
+                
+                inputGroup.innerHTML = `
+                    <input type="url" class="url-input" placeholder="https://example.com" value="${value}">
+                    <button class="btn btn-danger remove-url" title="Remove URL">🗑️</button>
+                `;
+
+                // Add remove functionality
+                const removeBtn = inputGroup.querySelector('.remove-url');
+                removeBtn.addEventListener('click', () => {
+                    if (this.urlInputs.children.length > 1) {
+                        inputGroup.remove();
+                    }
+                });
+
+                this.urlInputs.appendChild(inputGroup);
+            }
+
+            getUrls() {
+                const inputs = this.urlInputs.querySelectorAll('.url-input');
+                return Array.from(inputs)
+                    .map(input => input.value.trim())
+                    .filter(url => url.length > 0);
+            }
+
+            getThresholds() {
+                return {
+                    performance: parseInt(document.getElementById('performanceThreshold').value),
+                    accessibility: parseInt(document.getElementById('accessibilityThreshold').value),
+                    seo: parseInt(document.getElementById('seoThreshold').value)
+                };
+            }
+
+            showStatus(message, type = 'info') {
+                this.status.textContent = message;
+                this.status.className = `status ${type}`;
+                this.status.style.display = 'block';
+
+                if (type === 'success' || type === 'error') {
+                    setTimeout(() => {
+                        this.status.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            async runTests() {
+                const urls = this.getUrls();
+                
+                if (urls.length === 0) {
+                    this.showStatus('Please add at least one URL to test', 'error');
+                    return;
+                }
+
+                this.showStatus('Running performance tests... This may take a few minutes.', 'info');
+                this.runTestsBtn.disabled = true;
+                this.runTestsBtn.textContent = '🔄 Running Tests...';
+
+                try {
+                    const thresholds = this.getThresholds();
+                    
+                    // Call the backend API to run tests
+                    const response = await fetch('/api/run-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ urls, thresholds })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.showStatus(`Tests completed successfully! Generated ${result.reportCount} reports.`, 'success');
+                        this.loadReports();
+                    } else {
+                        throw new Error('Failed to run tests');
+                    }
+                } catch (error) {
+                    console.error('Error running tests:', error);
+                    this.showStatus('Error running tests. Please check the console for details.', 'error');
+                }
+
+                this.runTestsBtn.disabled = false;
+                this.runTestsBtn.innerHTML = '🧪 Run Performance Tests';
+            }
+
+            async loadReports() {
+                try {
+                    const response = await fetch('/api/reports');
+                    if (response.ok) {
+                        const reports = await response.json();
+                        this.displayReports(reports);
+                    }
+                } catch (error) {
+                    console.error('Error loading reports:', error);
+                    this.reportsGrid.innerHTML = '<p>No reports available yet. Run some tests to generate reports!</p>';
+                }
+            }
+
+            displayReports(reports) {
+                if (reports.length === 0) {
+                    this.reportsGrid.innerHTML = '<p>No reports available yet. Run some tests to generate reports!</p>';
+                    return;
+                }
+
+                this.reportsGrid.innerHTML = reports.map(report => `
+                    <div class="report-card">
+                        <h4>${report.name}</h4>
+                        <p><strong>URL:</strong> ${report.url}</p>
+                        <p><strong>Date:</strong> ${new Date(report.date).toLocaleDateString()}</p>
+                        <a href="${report.path}" target="_blank" class="report-link">View Report →</a>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Initialize the dashboard when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PageSpeedDashboard();
+        });
+    </script>
+</body>
+</html> 
