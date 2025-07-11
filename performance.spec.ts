@@ -6,19 +6,19 @@ import path from 'path';
 
 const execAsync = promisify(exec);
 
-// Read URLs and thresholds from config file
-let urls = ['https://beachwoodhomes.com.au/display-homes', 'https://beachwoodhomes.com.au/home-designs'];
-let thresholds = { performance: 75, accessibility: 90, seo: 85 };
+// Read URLs and thresholds from config file (required)
+const configPath = path.join(__dirname, 'test-config.json');
 
-try {
-  const configPath = path.join(__dirname, 'test-config.json');
-  if (fs.existsSync(configPath)) {
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    urls = config.urls || urls;
-    thresholds = config.thresholds || thresholds;
-  }
-} catch (error) {
-  console.log('Using default URLs and thresholds');
+if (!fs.existsSync(configPath)) {
+  throw new Error('test-config.json not found. Please run tests through the dashboard.');
+}
+
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+const urls = config.urls;
+const thresholds = config.thresholds || { performance: 75, accessibility: 90, seo: 85 };
+
+if (!urls || urls.length === 0) {
+  throw new Error('No URLs found in configuration. Please add URLs through the dashboard.');
 }
 
 test.describe('Page Speed Tests', () => {

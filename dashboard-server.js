@@ -33,26 +33,29 @@ app.post('/api/run-tests', async (req, res) => {
         const configPath = path.join(__dirname, 'test-config.json');
         fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
 
-        // Run the existing performance.spec.ts
-        const command = `npx playwright test performance.spec.ts --project=performance --reporter=json`;
-        const { stdout, stderr } = await execAsync(command);
-
-        // Clean up config file
-        if (fs.existsSync(configPath)) {
-            fs.unlinkSync(configPath);
-        }
-
-        // Parse the test results
-        let testResults;
         try {
-            testResults = JSON.parse(stdout);
-        } catch (parseError) {
-            console.error('Error parsing test results:', parseError);
-            return res.status(500).json({ error: 'Error parsing test results', details: parseError.message });
-        }
+            // Run the existing performance.spec.ts
+            const command = `npx playwright test performance.spec.ts --project=performance --reporter=json`;
+            const { stdout, stderr } = await execAsync(command);
 
-        console.log('Tests completed successfully');
-        res.json({ success: true, testResults: testResults.suites || [] });
+            // Parse the test results
+            let testResults;
+            try {
+                testResults = JSON.parse(stdout);
+            } catch (parseError) {
+                console.error('Error parsing test results:', parseError);
+                return res.status(500).json({ error: 'Error parsing test results', details: parseError.message });
+            }
+
+            console.log('Tests completed successfully');
+            res.json({ success: true, testResults: testResults.suites || [] });
+
+        } finally {
+            // Always clean up config file
+            if (fs.existsSync(configPath)) {
+                fs.unlinkSync(configPath);
+            }
+        }
 
     } catch (error) {
         console.error('Error running tests:', error);
