@@ -1,6 +1,138 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="2" errors="0" time="5.897647999999999">
-<testsuite name="performance.spec.ts" timestamp="2025-07-10T09:14:56.822Z" hostname="performance" tests="2" failures="0" skipped="2" time="4.319" errors="0">
-<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/display-homes" classname="performance.spec.ts" time="4.319">
+<testsuites id="" name="" tests="32" failures="0" skipped="32" errors="0" time="19.330993000000003">
+<testsuite name="example.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="chromium" tests="8" failures="0" skipped="8" time="15" errors="0">
+<testcase name="has title" classname="example.spec.ts" time="15">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Download inclusions" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="performance.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="chromium" tests="2" failures="0" skipped="2" time="15.973" errors="0">
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/display-homes" classname="performance.spec.ts" time="15.973">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/home-designs" classname="performance.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="has title" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Download inclusions" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="performance.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="firefox" tests="2" failures="0" skipped="2" time="0" errors="0">
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/display-homes" classname="performance.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/home-designs" classname="performance.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="has title" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Download inclusions" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] desktop viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [chromium] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [firefox] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Contact Form Validations › [webkit] mobile viewport validations @visual" classname="example.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="performance.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="webkit" tests="2" failures="0" skipped="2" time="0" errors="0">
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/display-homes" classname="performance.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/home-designs" classname="performance.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="performance.spec.ts" timestamp="2025-07-11T00:10:53.284Z" hostname="performance" tests="2" failures="0" skipped="2" time="0" errors="0">
+<testcase name="Page Speed Tests › Performance audit for https://beachwoodhomes.com.au/display-homes" classname="performance.spec.ts" time="0">
 <skipped>
 </skipped>
 </testcase>
