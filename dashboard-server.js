@@ -36,6 +36,14 @@ app.post('/api/run-tests', async (req, res) => {
         const configPath = path.join(__dirname, 'test-config.json');
         fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
 
+        // Check if the config file was created successfully
+        if (!fs.existsSync(configPath)) {
+            console.error('❌ Failed to create test-config.json');
+            return res.status(500).json({ error: 'Failed to create test-config.json' });
+        }
+
+        console.log('✅ Config file created successfully');
+
         try {
             // Run only the performance.spec.ts file
             const command = `npx playwright test performance.spec.ts --reporter=list`;
@@ -146,19 +154,28 @@ app.get('/api/reports', (req, res) => {
     }
 });
 
+app.get('/reports', (req, res) => {
+  const reportsDir = path.join(__dirname, 'lighthouse');
+  fs.readdir(reportsDir, (err, files) => {
+    if (err) {
+      return res.status(500).send('Error reading reports directory.');
+    }
+    const reports = files.filter(file => file.endsWith('.report.html'));
+    res.json(reports);
+  });
+});
 
 
 // Start the server
-app.listen(port, () => {
-    console.log(`🚀 Page Speed Dashboard running at http://localhost:${port}`);
-    console.log('📊 Dashboard features:');
-    console.log('  • Add/remove URLs dynamically');
-    console.log('  • Configure performance thresholds');
-    console.log('  • Run Playwright + Lighthouse tests');
-    console.log('  • View generated reports');
-    console.log('');
-    console.log('💡 Make sure you have the following dependencies installed:');
-    console.log('  npm install express playwright playwright-lighthouse');
+const server = app.listen(3000, () => {
+    console.log('Dashboard server is running on port 3000');
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error('Port 3000 is already in use. Please free the port and restart the server.');
+        process.exit(1);
+    }
 });
 
 module.exports = app; 
