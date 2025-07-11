@@ -424,6 +424,8 @@
             async runTests() {
                 const urls = this.getUrls();
                 
+                console.log('Collected URLs:', urls); // Debugging log
+                
                 if (urls.length === 0) {
                     this.showStatus('Please add at least one URL to test', 'error');
                     return;
@@ -445,6 +447,8 @@
                         body: JSON.stringify({ urls, thresholds })
                     });
 
+                    console.log('Server response:', response); // Debugging log
+                    
                     if (response.ok) {
                         const result = await response.json();
                         this.showStatus(`Tests completed successfully! Generated ${result.reportCount} reports.`, 'success');

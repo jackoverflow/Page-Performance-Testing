@@ -22,6 +22,9 @@ app.post('/api/run-tests', async (req, res) => {
     try {
         const { urls, thresholds } = req.body;
 
+        console.log('Received URLs:', urls); // Debugging log
+        console.log('Received thresholds:', thresholds); // Debugging log
+
         if (!urls || urls.length === 0) {
             return res.status(400).json({ error: 'No URLs provided' });
         }
@@ -34,21 +37,42 @@ app.post('/api/run-tests', async (req, res) => {
         fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
 
         try {
-            // Run the existing performance.spec.ts
-            const command = `npx playwright test performance.spec.ts --project=performance --reporter=json`;
-            const { stdout, stderr } = await execAsync(command);
+            // Run only the performance.spec.ts file
+            const command = `npx playwright test performance.spec.ts --reporter=list`;
+            console.log('Executing command:', command);
+            
+            const { stdout, stderr } = await execAsync(command, { 
+                timeout: 300000, // 5 minutes timeout
+                maxBuffer: 1024 * 1024 // 1MB buffer
+            });
 
-            // Parse the test results
-            let testResults;
-            try {
-                testResults = JSON.parse(stdout);
-            } catch (parseError) {
-                console.error('Error parsing test results:', parseError);
-                return res.status(500).json({ error: 'Error parsing test results', details: parseError.message });
+            console.log('Test stdout:', stdout);
+            if (stderr) {
+                console.log('Test stderr:', stderr);
+            }
+
+            // Count generated reports
+            let reportCount = 0;
+            if (fs.existsSync('lighthouse')) {
+                const subdirs = fs.readdirSync('lighthouse', { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory());
+                
+                subdirs.forEach(subdir => {
+                    const subdirPath = path.join('lighthouse', subdir.name);
+                    const files = fs.readdirSync(subdirPath);
+                    reportCount += files.filter(file => file.endsWith('.html')).length;
+                });
             }
 
             console.log('Tests completed successfully');
-            res.json({ success: true, testResults: testResults.suites || [] });
+            console.log(`Generated ${reportCount} reports`);
+            
+            res.json({ 
+                success: true, 
+                reportCount: reportCount,
+                message: `Performance tests completed successfully for ${urls.length} URLs`,
+                urls: urls
+            });
 
         } finally {
             // Always clean up config file
@@ -59,7 +83,11 @@ app.post('/api/run-tests', async (req, res) => {
 
     } catch (error) {
         console.error('Error running tests:', error);
-        res.status(500).json({ error: 'Failed to run tests', details: error.message || 'Unknown error occurred' });
+        res.status(500).json({ 
+            error: 'Failed to run tests', 
+            details: error.message || 'Unknown error occurred',
+            command: error.cmd || 'Unknown command'
+        });
     }
 });
 
