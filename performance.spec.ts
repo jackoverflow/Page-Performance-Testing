@@ -28,40 +28,56 @@ test.describe('Page Speed Tests', () => {
       
       // Create a more robust URL slug
       const urlObj = new URL(url);
-      const urlSlug = urlObj.hostname.replace(/\./g, '-') + urlObj.pathname.replace(/[\/]/g, '-').replace(/--+/g, '-').replace(/^-|-$/g, '');
-      const outputDir = `lighthouse/${urlSlug}`;
-      const reportName = `report-${Date.now()}`;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + 
+                       new Date().toISOString().replace(/[:.]/g, '-').split('T')[1].substring(0, 8);
+      const urlSlug = urlObj.hostname.replace(/\./g, '_');
+      const reportName = `${urlSlug}_${timestamp}.report.html`;
       
-      console.log(`Output directory: ${outputDir}`);
       console.log(`Report name: ${reportName}`);
       
-      // Ensure output directory exists
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-        console.log(`Created directory: ${outputDir}`);
+      // Ensure lighthouse directory exists
+      const lighthouseDir = path.join(__dirname, 'lighthouse');
+      if (!fs.existsSync(lighthouseDir)) {
+        fs.mkdirSync(lighthouseDir, { recursive: true });
+        console.log(`Created lighthouse directory: ${lighthouseDir}`);
       }
       
-      // Run Lighthouse CLI
-      const command = `npx lighthouse ${url} --output=html,csv --output-path=${outputDir}/${reportName} --chrome-flags="--headless" --only-categories=performance,accessibility,seo --max-wait-for-load=60000`;
+      const fullReportPath = path.join(lighthouseDir, reportName);
+      
+      // Run Lighthouse CLI with proper output path
+      const command = `npx lighthouse "${url}" --output=html --output-path="${fullReportPath}" --chrome-flags="--headless --no-sandbox --disable-gpu" --only-categories=performance,accessibility,seo,best-practices --max-wait-for-load=60000 --timeout=60000`;
       
       console.log(`Executing Lighthouse command: ${command}`);
       
       try {
-        const { stdout, stderr } = await execAsync(command, { timeout: 120000 });
+        const { stdout, stderr } = await execAsync(command, { 
+          timeout: 120000,
+          maxBuffer: 1024 * 1024 * 5 // 5MB buffer
+        });
         console.log(`Lighthouse completed for ${url}`);
         
-        if (stderr) {
+        if (stderr && !stderr.includes('Warning')) {
           console.log(`Lighthouse stderr: ${stderr}`);
         }
         
         // Verify the report was created
-        const htmlReportPath = `${outputDir}/${reportName}.report.html`;
-        console.log(`Checking for report at: ${htmlReportPath}`);
+        console.log(`Checking for report at: ${fullReportPath}`);
         
-        const reportExists = fs.existsSync(htmlReportPath);
+        const reportExists = fs.existsSync(fullReportPath);
         console.log(`Report exists: ${reportExists}`);
         
+        if (reportExists) {
+          const stats = fs.statSync(fullReportPath);
+          console.log(`Report size: ${stats.size} bytes`);
+        }
+        
         expect(reportExists).toBe(true);
+        
+        // Also verify the report has content
+        if (reportExists) {
+          const stats = fs.statSync(fullReportPath);
+          expect(stats.size).toBeGreaterThan(1000); // At least 1KB
+        }
         
       } catch (error) {
         console.error(`Lighthouse failed for ${url}:`, error);
