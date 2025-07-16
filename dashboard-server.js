@@ -45,13 +45,13 @@ app.post('/api/run-tests', async (req, res) => {
         console.log('✅ Config file created successfully');
 
         try {
-            // Run only the performance.spec.ts file
-            const command = `npx playwright test performance.spec.ts --reporter=list`;
+            // Run only the performance.spec.ts file with the performance project
+            const command = `npx playwright test performance.spec.ts --project=performance --reporter=list`;
             console.log('Executing command:', command);
             
             const { stdout, stderr } = await execAsync(command, { 
                 timeout: 300000, // 5 minutes timeout
-                maxBuffer: 1024 * 1024 // 1MB buffer
+                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
             });
 
             console.log('Test stdout:', stdout);
@@ -59,17 +59,14 @@ app.post('/api/run-tests', async (req, res) => {
                 console.log('Test stderr:', stderr);
             }
 
-            // Count generated reports
+            // Count generated reports directly in lighthouse directory
             let reportCount = 0;
-            if (fs.existsSync('lighthouse')) {
-                const subdirs = fs.readdirSync('lighthouse', { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory());
-                
-                subdirs.forEach(subdir => {
-                    const subdirPath = path.join('lighthouse', subdir.name);
-                    const files = fs.readdirSync(subdirPath);
-                    reportCount += files.filter(file => file.endsWith('.html')).length;
-                });
+            const lighthouseDir = path.join(__dirname, 'lighthouse');
+            
+            if (fs.existsSync(lighthouseDir)) {
+                const files = fs.readdirSync(lighthouseDir);
+                reportCount = files.filter(file => file.endsWith('.report.html')).length;
+                console.log('Found report files:', files.filter(file => file.endsWith('.report.html')));
             }
 
             console.log('Tests completed successfully');
@@ -99,70 +96,45 @@ app.post('/api/run-tests', async (req, res) => {
     }
 });
 
-// API endpoint to get available reports
+// Endpoint to fetch reports dynamically
 app.get('/api/reports', (req, res) => {
-    try {
-        const reports = [];
-        
-        // Check for performance reports
-        const performanceReportsDir = path.join(__dirname, 'performance-reports');
-        if (fs.existsSync(performanceReportsDir)) {
-            const indexPath = path.join(performanceReportsDir, 'index.html');
-            if (fs.existsSync(indexPath)) {
-                reports.push({
-                    name: 'Performance Reports Dashboard',
-                    url: 'Multiple URLs',
-                    date: fs.statSync(indexPath).mtime,
-                    path: '/performance-reports/index.html'
-                });
-            }
-        }
-
-        // Check for lighthouse reports
-        const lighthouseDir = path.join(__dirname, 'lighthouse');
-        if (fs.existsSync(lighthouseDir)) {
-            const subdirs = fs.readdirSync(lighthouseDir, { withFileTypes: true })
-                .filter(dirent => dirent.isDirectory())
-                .map(dirent => dirent.name);
-
-            subdirs.forEach(subdir => {
-                const subdirPath = path.join(lighthouseDir, subdir);
-                const files = fs.readdirSync(subdirPath);
-                const htmlReports = files.filter(file => file.endsWith('.html'));
-                
-                htmlReports.forEach(report => {
-                    const reportPath = path.join(subdirPath, report);
-                    const stats = fs.statSync(reportPath);
-                    
-                    reports.push({
-                        name: `${subdir} - ${report}`,
-                        url: subdir,
-                        date: stats.mtime,
-                        path: `/lighthouse/${subdir}/${report}`
-                    });
-                });
-            });
-        }
-
-        // Sort reports by date (newest first)
-        reports.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        res.json(reports);
-    } catch (error) {
-        console.error('Error getting reports:', error);
-        res.status(500).json({ error: 'Failed to get reports' });
+    const reportsDir = path.join(__dirname, 'lighthouse');
+    
+    if (!fs.existsSync(reportsDir)) {
+        return res.json([]);
     }
+    
+    fs.readdir(reportsDir, (err, files) => {
+        if (err) {
+            console.error('Error reading reports directory:', err);
+            return res.status(500).send('Error reading reports directory');
+        }
+
+        // Filter for HTML report files and create proper paths
+        const reportLinks = files
+            .filter(file => file.endsWith('.report.html'))
+            .map(file => `/lighthouse/${file}`);
+
+        console.log('Found reports:', reportLinks);
+        res.json(reportLinks);
+    });
 });
 
 app.get('/reports', (req, res) => {
-  const reportsDir = path.join(__dirname, 'lighthouse');
-  fs.readdir(reportsDir, (err, files) => {
-    if (err) {
-      return res.status(500).send('Error reading reports directory.');
+    const reportsDir = path.join(__dirname, 'lighthouse');
+    
+    if (!fs.existsSync(reportsDir)) {
+        return res.json([]);
     }
-    const reports = files.filter(file => file.endsWith('.report.html'));
-    res.json(reports);
-  });
+    
+    fs.readdir(reportsDir, (err, files) => {
+        if (err) {
+            return res.status(500).send('Error reading reports directory.');
+        }
+        const reports = files.filter(file => file.endsWith('.report.html'));
+        console.log('Reports endpoint found:', reports);
+        res.json(reports);
+    });
 });
 
 
