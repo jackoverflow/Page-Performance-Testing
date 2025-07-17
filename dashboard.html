@@ -525,7 +525,7 @@
                         <p><strong>Date:</strong> ${new Date(report.date).toLocaleDateString()}</p>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
                             <a href="${report.path}" target="_blank" class="report-link">View Report →</a>
-                            <button class="btn btn-danger" onclick="dashboard.deleteReport('${report.name}')" style="font-size: 12px; padding: 4px 8px;">🗑️ Delete</button>
+                            <button class="btn btn-danger" onclick="window.dashboard.deleteReport('${report.name}')" style="font-size: 12px; padding: 4px 8px;">🗑️ Delete</button>
                         </div>
                     </div>
                 `).join('');
@@ -557,9 +557,11 @@
         }
 
         // Initialize the dashboard when the page loads
-        let dashboard;
+        let dashboard; // Declare dashboard variable
         document.addEventListener('DOMContentLoaded', () => {
+            // Create dashboard instance and make it globally accessible
             dashboard = new PageSpeedDashboard();
+            window.dashboard = dashboard; // Expose to global scope for button click handlers
         });
     </script>
 </body>
