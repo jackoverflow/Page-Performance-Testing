@@ -26,11 +26,20 @@ test.describe('Page Speed Tests', () => {
     test(`Performance audit for ${url}`, async () => {
       console.log(`Starting performance audit for: ${url}`);
       
-      // Create a more robust URL slug
-      const urlObj = new URL(url);
+      // Validate URL and create a safe filename
+      let urlObj;
+      try {
+        urlObj = new URL(url);
+      } catch (error) {
+        throw new Error(`Invalid URL: ${url}`);
+      }
+      
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + 
                        new Date().toISOString().replace(/[:.]/g, '-').split('T')[1].substring(0, 8);
-      const urlSlug = urlObj.hostname.replace(/\./g, '_');
+      
+      // Create a safe URL slug from hostname, handling potential undefined/null values
+      const hostname = urlObj.hostname || 'unknown-host';
+      const urlSlug = hostname.replace(/[^a-zA-Z0-9]/g, '_');
       const reportName = `${urlSlug}_${timestamp}.report.html`;
       
       console.log(`Report name: ${reportName}`);

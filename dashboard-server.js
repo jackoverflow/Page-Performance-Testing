@@ -5,7 +5,7 @@ const path = require('path');
 const { promisify } = require('util');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3001;
 const execAsync = promisify(exec);
 
 // Middleware
@@ -110,13 +110,35 @@ app.get('/api/reports', (req, res) => {
             return res.status(500).send('Error reading reports directory');
         }
 
-        // Filter for HTML report files and create proper paths
-        const reportLinks = files
+        // Filter for HTML report files and create proper report objects
+        const reports = files
             .filter(file => file.endsWith('.report.html'))
-            .map(file => `/lighthouse/${file}`);
+            .map(file => {
+                const filePath = path.join(reportsDir, file);
+                const stats = fs.statSync(filePath);
+                
+                // Parse filename to extract hostname and timestamp
+                const baseName = file.replace('.report.html', '');
+                const parts = baseName.split('_');
+                const hostname = parts[0] || 'unknown';
+                const timestamp = parts.slice(1).join('_') || 'unknown';
+                
+                // Reconstruct URL from hostname (best guess)
+                const url = hostname.includes('_') ? 
+                    `https://${hostname.replace(/_/g, '.')}` : 
+                    `https://${hostname}`;
+                
+                return {
+                    name: file,
+                    url: url,
+                    date: stats.mtime.toISOString(),
+                    path: `/lighthouse/${file}`
+                };
+            })
+            .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by newest first
 
-        console.log('Found reports:', reportLinks);
-        res.json(reportLinks);
+        console.log('Found reports:', reports);
+        res.json(reports);
     });
 });
 
@@ -137,15 +159,40 @@ app.get('/reports', (req, res) => {
     });
 });
 
+// Endpoint to delete a specific report
+app.delete('/api/reports/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const reportsDir = path.join(__dirname, 'lighthouse');
+    const filePath = path.join(reportsDir, filename);
+    
+    // Validate filename to prevent directory traversal
+    if (!filename.endsWith('.report.html') || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ error: 'Invalid filename' });
+    }
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    try {
+        fs.unlinkSync(filePath);
+        console.log(`Deleted report: ${filename}`);
+        res.json({ success: true, message: `Report ${filename} deleted successfully` });
+    } catch (error) {
+        console.error('Error deleting report:', error);
+        res.status(500).json({ error: 'Failed to delete report' });
+    }
+});
 
 // Start the server
-const server = app.listen(3000, () => {
-    console.log('Dashboard server is running on port 3000');
+const server = app.listen(port, () => {
+    console.log(`Dashboard server is running on port ${port}`);
 });
 
 server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-        console.error('Port 3000 is already in use. Please free the port and restart the server.');
+        console.error(`Port ${port} is already in use. Please free the port and restart the server.`);
         process.exit(1);
     }
 });
