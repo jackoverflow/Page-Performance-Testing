@@ -288,6 +288,85 @@
             .threshold-controls {
                 grid-template-columns: 1fr;
             }
+
+            .timer {
+                position: absolute;
+                top: 16px;
+                right: 20px;
+                z-index: 1000;
+            }
+        }
+
+        /* Timer Styles */
+        .timer {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .timer.running {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.5);
+        }
+
+        .timer .timer-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .timer .timer-value {
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 20px rgba(245, 87, 108, 0.5);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 6px 25px rgba(245, 87, 108, 0.7);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 20px rgba(245, 87, 108, 0.5);
+            }
+        }
+
+        /* Mobile responsive timer */
+        @media (max-width: 640px) {
+            .timer {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 14px;
+                min-width: 120px;
+            }
+
+            .timer .timer-value {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -338,8 +417,9 @@
             </div>
 
             <div id="status" class="status"></div>
-            <div id="timer" style="position: absolute; top: 10px; right: 10px; font-size: 20px;">
-                Timer: <span id="time">0</span> seconds
+            <div id="timer" class="timer">
+                <span class="timer-label">⏱️ Timer</span>
+                <div class="timer-value"><span id="time">0</span>s</div>
             </div>
 
             <div class="reports-section">
@@ -431,6 +511,10 @@
                 this.startTime = Date.now();
                 this.timerElement.textContent = '0';
                 
+                // Add running class for animation
+                const timerContainer = document.getElementById('timer');
+                timerContainer.classList.add('running');
+                
                 this.timerInterval = setInterval(() => {
                     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
                     this.timerElement.textContent = elapsed;
@@ -441,6 +525,10 @@
                 if (this.timerInterval) {
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
+                    
+                    // Remove running class
+                    const timerContainer = document.getElementById('timer');
+                    timerContainer.classList.remove('running');
                 }
             }
 
@@ -448,6 +536,10 @@
                 this.stopTimer();
                 this.timerElement.textContent = '0';
                 this.startTime = null;
+                
+                // Remove running class
+                const timerContainer = document.getElementById('timer');
+                timerContainer.classList.remove('running');
             }
 
             async runTests() {

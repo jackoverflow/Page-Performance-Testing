@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Speed Testing Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Page Speed Dashboard</h1>
+            <p>Powered by Playwright & Lighthouse</p>
+        </div>
+        
+        <div class="content">
+            <% if (typeof message !== 'undefined' && message) { %>
+                <div class="status <%= messageType %>">
+                    <%= message %>
+                </div>
+            <% } %>
+            
+            <form id="testForm" action="/run-tests" method="POST">
+                <div class="section">
+                    <h2>🌐 URLs to Test</h2>
+                    <div id="urlInputs" class="url-inputs">
+                        <% if (typeof urls !== 'undefined' && urls && urls.length > 0) { %>
+                            <% urls.forEach(function(url) { %>
+                                <div class="url-input-group">
+                                    <input type="url" name="urls[]" class="url-input" placeholder="https://example.com" value="<%= url %>">
+                                    <button type="button" class="btn btn-danger remove-url" title="Remove URL">🗑️</button>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="url-input-group">
+                                <input type="url" name="urls[]" class="url-input" placeholder="https://example.com" value="https://annix.com.au">
+                                <button type="button" class="btn btn-danger remove-url" title="Remove URL">🗑️</button>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="add-url-container">
+                        <button type="button" id="addUrlBtn" class="btn btn-primary">
+                            ➕ Add URL
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>⚙️ Test Configuration</h2>
+                    <div class="threshold-controls">
+                        <div class="threshold-group">
+                            <label for="performanceThreshold">Performance Threshold</label>
+                            <input type="number" id="performanceThreshold" name="performanceThreshold" class="threshold-input" 
+                                value="<%= typeof thresholds !== 'undefined' && thresholds.performance ? thresholds.performance : 75 %>" min="0" max="100">
+                        </div>
+                        <div class="threshold-group">
+                            <label for="accessibilityThreshold">Accessibility Threshold</label>
+                            <input type="number" id="accessibilityThreshold" name="accessibilityThreshold" class="threshold-input" 
+                                value="<%= typeof thresholds !== 'undefined' && thresholds.accessibility ? thresholds.accessibility : 90 %>" min="0" max="100">
+                        </div>
+                        <div class="threshold-group">
+                            <label for="seoThreshold">SEO Threshold</label>
+                            <input type="number" id="seoThreshold" name="seoThreshold" class="threshold-input" 
+                                value="<%= typeof thresholds !== 'undefined' && thresholds.seo ? thresholds.seo : 85 %>" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-controls">
+                    <button type="submit" id="runTestsBtn" class="btn btn-success">
+                        🧪 Run Performance Tests
+                    </button>
+                </div>
+            </form>
+
+            <div id="status" class="status"></div>
+            <div id="timer" class="timer-container">
+                <span class="timer-icon">⏱️</span>
+                <span class="timer-value" id="time">0</span>
+                <span class="timer-label">sec</span>
+            </div>
+
+            <div class="reports-section">
+                <h2>📊 Recent Reports</h2>
+                <div id="reportsGrid" class="reports-grid">
+                    <% if (typeof reports !== 'undefined' && reports && reports.length > 0) { %>
+                        <% reports.forEach(function(report) { %>
+                            <div class="report-card">
+                                <h4><%= report.name %></h4>
+                                <p><strong>URL:</strong> <%= report.url %></p>
+                                <p><strong>Date:</strong> <%= new Date(report.date).toLocaleDateString() %></p>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <a href="<%= report.path %>" target="_blank" class="report-link">View Report →</a>
+                                    <form action="/delete-report/<%= encodeURIComponent(report.name) %>" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 4px 8px;">🗑️ Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>No reports available yet. Run some tests to generate reports!</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
