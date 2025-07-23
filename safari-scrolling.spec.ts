@@ -160,10 +160,29 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           // Wait for page to be fully loaded
           await page.waitForLoadState('domcontentloaded');
           
-          // For Metricon dashboard, just log the final URL
+          // For Metricon dashboard, verify we're actually on the dashboard
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Final URL after authentication flow:', page.url());
-            // Wait a bit more for dashboard content to load
+            
+            // Check if we're still on login page
+            const isStillOnLogin = await page.locator('input[name="email"]').isVisible().catch(() => false);
+            if (isStillOnLogin) {
+              console.log('Still on login page, forcing navigation to dashboard...');
+              await page.goto('https://mymetricon-nextjs-dev.vercel.app/dashboard/752662', {
+                waitUntil: 'domcontentloaded',
+                timeout: 30000
+              });
+              await page.waitForTimeout(5000);
+              
+              // Check again
+              const stillOnLoginAfterForce = await page.locator('input[name="email"]').isVisible().catch(() => false);
+              if (stillOnLoginAfterForce) {
+                throw new Error('Authentication failed - unable to access dashboard page');
+              }
+            }
+            
+            console.log('Dashboard verification complete, current URL:', page.url());
+            // Wait for dashboard content to load
             await page.waitForTimeout(3000);
           }
         
