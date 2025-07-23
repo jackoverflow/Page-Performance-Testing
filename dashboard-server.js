@@ -11,6 +11,7 @@ const execAsync = promisify(exec);
 // Middleware
 app.use(express.json());
 app.use(express.static('.'));
+app.use('/safari-scrolling', express.static(path.join(__dirname, 'safari-scrolling')));
 
 // Serve the dashboard
 app.get('/', (req, res) => {
@@ -96,50 +97,149 @@ app.post('/api/run-tests', async (req, res) => {
     }
 });
 
-// Endpoint to fetch reports dynamically
-app.get('/api/reports', (req, res) => {
-    const reportsDir = path.join(__dirname, 'lighthouse');
-    
-    if (!fs.existsSync(reportsDir)) {
-        return res.json([]);
-    }
-    
-    fs.readdir(reportsDir, (err, files) => {
-        if (err) {
-            console.error('Error reading reports directory:', err);
-            return res.status(500).send('Error reading reports directory');
+// API endpoint to run Safari iPhone 16 scrolling tests
+app.post('/api/run-scrolling-tests', async (req, res) => {
+    try {
+        const { urls, thresholds } = req.body;
+
+        console.log('Received URLs for scrolling tests:', urls);
+        console.log('Received thresholds:', thresholds);
+
+        if (!urls || urls.length === 0) {
+            return res.status(400).json({ error: 'No URLs provided' });
         }
 
-        // Filter for HTML report files and create proper report objects
-        const reports = files
-            .filter(file => file.endsWith('.report.html'))
-            .map(file => {
-                const filePath = path.join(reportsDir, file);
-                const stats = fs.statSync(filePath);
-                
-                // Parse filename to extract hostname and timestamp
-                const baseName = file.replace('.report.html', '');
-                const parts = baseName.split('_');
-                const hostname = parts[0] || 'unknown';
-                const timestamp = parts.slice(1).join('_') || 'unknown';
-                
-                // Reconstruct URL from hostname (best guess)
-                const url = hostname.includes('_') ? 
-                    `https://${hostname.replace(/_/g, '.')}` : 
-                    `https://${hostname}`;
-                
-                return {
-                    name: file,
-                    url: url,
-                    date: stats.mtime.toISOString(),
-                    path: `/lighthouse/${file}`
-                };
-            })
-            .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by newest first
+        console.log('Running Safari iPhone 16 scrolling tests for URLs:', urls);
 
-        console.log('Found reports:', reports);
-        res.json(reports);
-    });
+        // Write config to JSON file for the test to read
+        const configPath = path.join(__dirname, 'test-config.json');
+        fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
+
+        // Check if the config file was created successfully
+        if (!fs.existsSync(configPath)) {
+            console.error('❌ Failed to create test-config.json');
+            return res.status(500).json({ error: 'Failed to create test-config.json' });
+        }
+
+        console.log('✅ Config file created successfully');
+
+        try {
+            // Run the safari-scrolling.spec.ts file with the safari-scrolling project
+            const command = `npx playwright test safari-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
+            console.log('Executing scrolling test command:', command);
+            
+            const { stdout, stderr } = await execAsync(command, { 
+                timeout: 300000, // 5 minutes timeout
+                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+            });
+
+            console.log('Scrolling test stdout:', stdout);
+            if (stderr) {
+                console.log('Scrolling test stderr:', stderr);
+            }
+
+            // Count generated reports in safari-scrolling directory
+            let reportCount = 0;
+            const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
+            
+            if (fs.existsSync(scrollingReportsDir)) {
+                const files = fs.readdirSync(scrollingReportsDir);
+                reportCount = files.filter(file => file.endsWith('.report.html')).length;
+                console.log('Found scrolling report files:', files.filter(file => file.endsWith('.report.html')));
+            }
+
+            console.log('Scrolling tests completed successfully');
+            console.log(`Generated ${reportCount} scrolling reports`);
+            
+            res.json({ 
+                success: true, 
+                reportCount: reportCount,
+                message: `Safari iPhone 16 scrolling tests completed successfully for ${urls.length} URLs`,
+                urls: urls
+            });
+
+        } finally {
+            // Always clean up config file
+            if (fs.existsSync(configPath)) {
+                fs.unlinkSync(configPath);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error running scrolling tests:', error);
+        res.status(500).json({ 
+            error: 'Failed to run scrolling tests', 
+            details: error.message || 'Unknown error occurred',
+            command: error.cmd || 'Unknown command'
+        });
+    }
+});
+
+// Endpoint to fetch reports dynamically
+app.get('/api/reports', (req, res) => {
+    const lighthouseDir = path.join(__dirname, 'lighthouse');
+    const scrollingDir = path.join(__dirname, 'safari-scrolling');
+    
+    let allReports = [];
+    
+    // Helper function to process reports from a directory
+    const processReportsFromDir = (dir, pathPrefix, reportType) => {
+        if (!fs.existsSync(dir)) {
+            return [];
+        }
+        
+        try {
+            const files = fs.readdirSync(dir);
+            return files
+                .filter(file => file.endsWith('.report.html'))
+                .map(file => {
+                    const filePath = path.join(dir, file);
+                    const stats = fs.statSync(filePath);
+                    
+                    // Parse filename to extract hostname and timestamp
+                    const baseName = file.replace('.report.html', '');
+                    let hostname, url;
+                    
+                    if (reportType === 'scrolling') {
+                        // Scrolling reports: hostname_timestamp_scrolling.report.html
+                        const parts = baseName.replace('_scrolling', '').split('_');
+                        hostname = parts[0] || 'unknown';
+                        url = hostname.includes('_') ? 
+                            `https://${hostname.replace(/_/g, '.')}` : 
+                            `https://${hostname}`;
+                    } else {
+                        // Lighthouse reports: hostname_timestamp.report.html
+                        const parts = baseName.split('_');
+                        hostname = parts[0] || 'unknown';
+                        url = hostname.includes('_') ? 
+                            `https://${hostname.replace(/_/g, '.')}` : 
+                            `https://${hostname}`;
+                    }
+                    
+                    return {
+                        name: file,
+                        url: url,
+                        date: stats.mtime.toISOString(),
+                        path: `/${pathPrefix}/${file}`,
+                        type: reportType
+                    };
+                });
+        } catch (error) {
+            console.error(`Error reading ${reportType} reports directory:`, error);
+            return [];
+        }
+    };
+    
+    // Get reports from both directories
+    const lighthouseReports = processReportsFromDir(lighthouseDir, 'lighthouse', 'lighthouse');
+    const scrollingReports = processReportsFromDir(scrollingDir, 'safari-scrolling', 'scrolling');
+    
+    // Combine and sort all reports by date (newest first)
+    allReports = [...lighthouseReports, ...scrollingReports]
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    console.log('Found reports:', allReports);
+    res.json(allReports);
 });
 
 app.get('/reports', (req, res) => {
@@ -162,13 +262,21 @@ app.get('/reports', (req, res) => {
 // Endpoint to delete a specific report
 app.delete('/api/reports/:filename', (req, res) => {
     const filename = req.params.filename;
-    const reportsDir = path.join(__dirname, 'lighthouse');
-    const filePath = path.join(reportsDir, filename);
     
     // Validate filename to prevent directory traversal
     if (!filename.endsWith('.report.html') || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
         return res.status(400).json({ error: 'Invalid filename' });
     }
+    
+    // Determine which directory based on filename
+    let reportsDir;
+    if (filename.includes('scrolling')) {
+        reportsDir = path.join(__dirname, 'safari-scrolling');
+    } else {
+        reportsDir = path.join(__dirname, 'lighthouse');
+    }
+    
+    const filePath = path.join(reportsDir, filename);
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -177,6 +285,26 @@ app.delete('/api/reports/:filename', (req, res) => {
     
     try {
         fs.unlinkSync(filePath);
+        
+        // Also try to delete associated screenshots for scrolling reports
+        if (filename.includes('scrolling')) {
+            const baseFileName = filename.replace('_scrolling.report.html', '');
+            const files = fs.readdirSync(reportsDir);
+            
+            // Delete initial and scroll screenshots
+            files.forEach(file => {
+                if (file.startsWith(baseFileName) && file.endsWith('.png')) {
+                    const screenshotPath = path.join(reportsDir, file);
+                    try {
+                        fs.unlinkSync(screenshotPath);
+                        console.log(`Also deleted screenshot: ${file}`);
+                    } catch (err) {
+                        console.log(`Could not delete screenshot ${file}:`, err.message);
+                    }
+                }
+            });
+        }
+        
         console.log(`Deleted report: ${filename}`);
         res.json({ success: true, message: `Report ${filename} deleted successfully` });
     } catch (error) {

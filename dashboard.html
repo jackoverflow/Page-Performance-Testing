@@ -414,6 +414,9 @@
                 <button id="runTestsBtn" class="btn btn-success">
                     🧪 Run Performance Tests
                 </button>
+                <button id="runScrollTestBtn" class="btn btn-primary" style="margin-left: 12px;">
+                    📱 Run Safari iPhone 16 Scrolling Test
+                </button>
             </div>
 
             <div id="status" class="status"></div>
@@ -437,6 +440,7 @@
                 this.urlInputs = document.getElementById('urlInputs');
                 this.addUrlBtn = document.getElementById('addUrlBtn');
                 this.runTestsBtn = document.getElementById('runTestsBtn');
+                this.runScrollTestBtn = document.getElementById('runScrollTestBtn');
                 this.status = document.getElementById('status');
                 this.reportsGrid = document.getElementById('reportsGrid');
                 this.timerElement = document.getElementById('time'); // Get the timer element
@@ -455,6 +459,7 @@
                 // Event listeners
                 this.addUrlBtn.addEventListener('click', () => this.addUrlInput(''));
                 this.runTestsBtn.addEventListener('click', () => this.runTests());
+                this.runScrollTestBtn.addEventListener('click', () => this.runScrollingTests());
 
                 // Load existing reports
                 this.loadReports();
@@ -591,6 +596,55 @@
                 }
             }
 
+            async runScrollingTests() {
+                const urls = this.getUrls();
+                
+                console.log('Collected URLs for scrolling test:', urls);
+                
+                if (urls.length === 0) {
+                    this.showStatus('Please add at least one URL to test', 'error');
+                    return;
+                }
+
+                // Start the timer
+                this.startTimer();
+
+                this.showStatus('Running Safari iPhone 16 scrolling tests... This may take a few minutes.', 'info');
+                this.runScrollTestBtn.disabled = true;
+                this.runScrollTestBtn.textContent = '🔄 Running Scrolling Tests...';
+
+                try {
+                    const thresholds = this.getThresholds();
+                    
+                    // Call the backend API to run scrolling tests
+                    const response = await fetch('/api/run-scrolling-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ urls, thresholds })
+                    });
+
+                    console.log('Scrolling test server response:', response);
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.showStatus(`Scrolling tests completed successfully! Generated ${result.reportCount} reports.`, 'success');
+                        this.loadReports();
+                    } else {
+                        throw new Error('Failed to run scrolling tests');
+                    }
+                } catch (error) {
+                    console.error('Error running scrolling tests:', error);
+                    this.showStatus('Error running scrolling tests. Please check the console for details.', 'error');
+                } finally {
+                    // Stop the timer when tests are complete (success or error)
+                    this.stopTimer();
+                    this.runScrollTestBtn.disabled = false;
+                    this.runScrollTestBtn.textContent = '📱 Run Safari iPhone 16 Scrolling Test';
+                }
+            }
+
             async loadReports() {
                 try {
                     const response = await fetch('/api/reports');
@@ -614,6 +668,7 @@
                     <div class="report-card">
                         <h4>${report.name}</h4>
                         <p><strong>URL:</strong> ${report.url}</p>
+                        <p><strong>Type:</strong> ${report.type === 'scrolling' ? '📱 Safari Scrolling' : '🚀 Lighthouse'}</p>
                         <p><strong>Date:</strong> ${new Date(report.date).toLocaleDateString()}</p>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
                             <a href="${report.path}" target="_blank" class="report-link">View Report →</a>

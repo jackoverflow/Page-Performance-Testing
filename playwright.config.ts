@@ -15,6 +15,21 @@ export default defineConfig({
         ignoreHTTPSErrors: true,
         bypassCSP: true
       }
+    },
+    {
+      name: 'safari-scrolling',
+      testMatch: '**/safari-scrolling.spec.ts',
+      timeout: 180000, // 3 minutes
+      retries: 1,
+      use: {
+        ...devices['iPhone 16'],
+        browserName: 'webkit',
+        headless: true,
+        ignoreHTTPSErrors: true,
+        bypassCSP: true,
+        locale: 'en-US',
+        geolocation: { latitude: 14.5995, longitude: 120.9842 }
+      }
     }
   ],
   expect: {
