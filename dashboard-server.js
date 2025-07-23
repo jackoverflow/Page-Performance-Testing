@@ -136,24 +136,47 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
 
         // Check if this is a Metricon URL and use the appropriate test
         const isMetriconUrl = urls.some(url => url.includes('mymetricon-nextjs-dev.vercel.app'));
-        const testFile = isMetriconUrl ? 'metricon-scrolling.spec.ts' : 'safari-scrolling.spec.ts';
-        // Always use safari-scrolling project since metricon-scrolling project may not be configured
-        const projectName = 'safari-scrolling';
         
-        // Run the appropriate scrolling test command
-        const command = `npx playwright test ${testFile} --project=${projectName} --reporter=list`;
-        console.log('Executing command:', command);
+        if (isMetriconUrl) {
+            // Use specialized Metricon test
+            const command = `npx playwright test metricon-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
+            console.log('Executing Metricon command:', command);
+            
+            try {
+                const { stdout, stderr } = await execAsync(command, {
+                    timeout: 300000, // 5 minutes timeout
+                    maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+                });
+                
+                console.log('Metricon test stdout:', stdout);
+                
+                if (stderr && !stderr.includes('Warning')) {
+                    console.error('Error running Metricon scrolling tests:', stderr);
+                    return res.status(500).json({ error: 'Error running Metricon scrolling tests', details: stderr });
+                }
+            } catch (execError) {
+                console.error('Error executing Metricon command:', execError);
+                return res.status(500).json({ 
+                    error: 'Failed to execute Metricon scrolling tests', 
+                    details: execError.message || 'Unknown error occurred',
+                    command: execError.cmd || 'Unknown command'
+                });
+            }
+        } else {
+            // Use regular safari-scrolling test for other URLs
+            const command = `npx playwright test safari-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
+            console.log('Executing regular scrolling command:', command);
 
-        try {
-            const { stdout, stderr } = await execAsync(command, {
-                timeout: 300000, // 5 minutes timeout
-                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
-            });
+            try {
+                const { stdout, stderr } = await execAsync(command, {
+                    timeout: 300000, // 5 minutes timeout
+                    maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+                });
 
-            console.log('Test stdout:', stdout);
+                console.log('Regular test stdout:', stdout);
 
-            if (stderr) {
-                console.error('Error running scrolling tests:', stderr);
+                if (stderr && !stderr.includes('Warning')) {
+                    console.error('Error running regular scrolling tests:', stderr);
                 return res.status(500).json({ error: 'Error running scrolling tests', details: stderr });
             }
         } catch (execError) {
