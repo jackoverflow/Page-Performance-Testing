@@ -5,11 +5,11 @@ import path from 'path';
 
 // Define iPhone 16 manually since it might not be available in older Playwright versions
 const iPhone16 = {
-  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-  viewport: { width: 390, height: 844 },
-  deviceScaleFactor: 3,
-  isMobile: true,
-  hasTouch: true
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    isMobile: true,
+    hasTouch: true
 };
 
 // Metricon specific credentials
@@ -19,215 +19,215 @@ const EMAIL = 'pio@ypdigital.com.au';
 const PASSWORD = 'YPD1g1t4l*';
 
 test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
-  test('Safari iPhone 16 scrolling test for Metricon Dashboard', async () => {
-    console.log(`Starting Safari iPhone 16 scrolling test for Metricon Dashboard`);
-    
-    // Create a safe filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + 
-                     new Date().toISOString().replace(/[:.]/g, '-').split('T')[1].substring(0, 8);
-    
-    // Create a safe URL slug from hostname
-    const urlSlug = 'mymetricon_nextjs_dev_dashboard';
-    
-    // Ensure safari-scrolling directory exists
-    const safariScrollingDir = path.join(__dirname, 'safari-scrolling');
-    if (!fs.existsSync(safariScrollingDir)) {
-      fs.mkdirSync(safariScrollingDir, { recursive: true });
-      console.log(`Created safari-scrolling directory: ${safariScrollingDir}`);
-    }
-    
-    // Launch webkit browser with iPhone 16 configuration
-    const browser = await webkit.launch({
-      headless: true
-    });
-    
-    const context = await browser.newContext({
-      ...iPhone16,
-      locale: 'en-US',
-      geolocation: { latitude: 14.5995, longitude: 120.9842 } // Manila, Philippines
-    });
-    
-    const page = await context.newPage();
-    
-    // Verify iPhone 16 viewport is set correctly
-    const viewport = page.viewportSize();
-    console.log('Current viewport:', viewport);
-    console.log('Expected iPhone 16 viewport:', iPhone16.viewport);
-    
-    // Force set viewport if needed
-    if (viewport?.width !== iPhone16.viewport.width || viewport?.height !== iPhone16.viewport.height) {
-      console.log('Setting iPhone 16 viewport...');
-      await page.setViewportSize(iPhone16.viewport);
-    }
-    
-    try {
-      console.log(`Navigating to login page: ${LOGIN_URL}`);
+    test('Safari iPhone 16 scrolling test for Metricon Dashboard', async () => {
+        console.log(`Starting Safari iPhone 16 scrolling test for Metricon Dashboard`);
 
-      // First navigate to the login page
-      await page.goto(LOGIN_URL, {
-        waitUntil: 'domcontentloaded',
-        timeout: 60000
-      });
+        // Create a safe filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' +
+            new Date().toISOString().replace(/[:.]/g, '-').split('T')[1].substring(0, 8);
 
-      // Wait for login form to be visible
-      await page.waitForSelector('input[name="email"]', { timeout: 10000 });
-      console.log('Login form found, authenticating...');
+        // Create a safe URL slug from hostname
+        const urlSlug = 'mymetricon_nextjs_dev_dashboard';
 
-      // Clear and fill in login credentials with more robust approach
-      console.log('Clearing email field...');
-      await page.locator('input[name="email"]').click();
-      await page.locator('input[name="email"]').fill('');
-      await page.locator('input[name="email"]').type(EMAIL, { delay: 100 });
-      
-      console.log('Clearing password field...');
-      await page.locator('input[name="password"]').click();
-      await page.locator('input[name="password"]').fill('');
-      await page.locator('input[name="password"]').type(PASSWORD, { delay: 100 });
-      
-      // Wait a moment for fields to be filled
-      await page.waitForTimeout(1000);
-      
-      // Verify credentials were filled
-      const emailValue = await page.locator('input[name="email"]').inputValue();
-      const passwordValue = await page.locator('input[name="password"]').inputValue();
-      console.log('Email filled correctly:', emailValue === EMAIL);
-      console.log('Password filled correctly:', passwordValue === PASSWORD);
-      console.log('Actual email value:', emailValue);
-      console.log('Expected email value:', EMAIL);
-
-      // Take screenshot before submitting to verify credentials are filled
-      const beforeSubmitScreenshot = path.join(safariScrollingDir, `before_submit_${timestamp}.png`);
-      await page.screenshot({ path: beforeSubmitScreenshot, fullPage: true });
-      console.log(`Before submit screenshot saved to: ${beforeSubmitScreenshot}`);
-      
-      // Click submit without waiting for navigation
-      console.log('Clicking submit button...');
-      await page.click('button[type="submit"]');
-      
-      // Wait a bit for any navigation to start
-      await page.waitForTimeout(8000);
-
-      // Take screenshot after login attempt
-      const loginScreenshot = path.join(safariScrollingDir, `after_login_${timestamp}.png`);
-      await page.screenshot({ path: loginScreenshot, fullPage: true });
-      console.log(`After login screenshot saved to: ${loginScreenshot}`);
-
-      console.log('Login submitted, current URL:', page.url());
-
-      // Skip navigation to dashboard and just test whatever page we're on
-      console.log('Skipping navigation to dashboard URL');
-      console.log('Will test scrolling on current page:', page.url());
-      
-      // Wait for page to stabilize
-      await page.waitForTimeout(3000);
-      
-      // Take a debug screenshot
-      const debugScreenshot = path.join(safariScrollingDir, `debug_screenshot_${timestamp}.png`);
-      await page.screenshot({ 
-        path: debugScreenshot,
-        fullPage: true
-      });
-      console.log(`Debug screenshot saved to: ${debugScreenshot}`);
-      
-      // Take initial screenshot
-      const initialScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_initial.png`);
-      await page.screenshot({ 
-        path: initialScreenshot,
-        fullPage: false // Just viewport
-      });
-      
-      // Get initial metrics
-      const initialMetrics = await page.evaluate(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        return {
-          domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-          loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
-          firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0,
-          largestContentfulPaint: performance.getEntriesByName('largest-contentful-paint')[0]?.startTime || 0,
-          scrollY: window.scrollY,
-          viewportHeight: window.innerHeight,
-          documentHeight: document.documentElement.scrollHeight
-        };
-      });
-      
-      const scrollSteps: Array<{
-        step: number;
-        duration: number;
-        scrollPosition: number;
-        timestamp: number;
-      }> = [];
-      const maxScrolls = 5;
-      
-      // Perform scrolling test
-      for (let i = 1; i <= maxScrolls; i++) {
-        const scrollStart = Date.now();
-        
-        // Smooth scroll down by viewport height
-        await page.evaluate(() => {
-          return new Promise((resolve) => {
-            const startY = window.scrollY;
-            const targetY = startY + window.innerHeight;
-            const maxY = document.documentElement.scrollHeight - window.innerHeight;
-            const finalY = Math.min(targetY, maxY);
-            
-            window.scrollTo({
-              top: finalY,
-              behavior: 'smooth'
-            });
-            
-            // Wait for scroll to complete
-            setTimeout(resolve, 800);
-          });
-        });
-        
-        const scrollEnd = Date.now();
-        
-        // Get metrics after scroll
-        const scrollMetrics = await page.evaluate(() => ({
-          scrollY: window.scrollY,
-          timestamp: Date.now(),
-          viewportHeight: window.innerHeight,
-          documentHeight: document.documentElement.scrollHeight
-        }));
-        
-        scrollSteps.push({
-          step: i,
-          duration: scrollEnd - scrollStart,
-          scrollPosition: scrollMetrics.scrollY,
-          timestamp: scrollMetrics.timestamp
-        });
-        
-        // Take screenshot after each scroll
-        const scrollScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_scroll_${i}.png`);
-        await page.screenshot({ 
-          path: scrollScreenshot,
-          fullPage: false
-        });
-        
-        // Wait a bit before next scroll
-        await page.waitForTimeout(500);
-        
-        // Stop if we've reached the bottom
-        if (scrollMetrics.scrollY >= scrollMetrics.documentHeight - scrollMetrics.viewportHeight - 10) {
-          console.log(`Reached bottom of page at scroll step ${i}`);
-          break;
+        // Ensure safari-scrolling directory exists
+        const safariScrollingDir = path.join(__dirname, 'safari-scrolling');
+        if (!fs.existsSync(safariScrollingDir)) {
+            fs.mkdirSync(safariScrollingDir, { recursive: true });
+            console.log(`Created safari-scrolling directory: ${safariScrollingDir}`);
         }
-      }
-      
-      // Get final page info
-      const pageInfo = {
-        title: await page.title(),
-        url: page.url(),
-        userAgent: await page.evaluate(() => navigator.userAgent),
-        viewport: page.viewportSize(),
-        timestamp: new Date().toISOString(),
-        initialMetrics: initialMetrics,
-        scrollSteps: scrollSteps,
-        totalScrollDistance: scrollSteps[scrollSteps.length - 1]?.scrollPosition || 0
-      };
-      
-      // Create HTML report
-      const reportHtml = `
+
+        // Launch webkit browser with iPhone 16 configuration
+        const browser = await webkit.launch({
+            headless: true
+        });
+
+        const context = await browser.newContext({
+            ...iPhone16,
+            locale: 'en-US',
+            geolocation: { latitude: 14.5995, longitude: 120.9842 } // Manila, Philippines
+        });
+
+        const page = await context.newPage();
+
+        // Verify iPhone 16 viewport is set correctly
+        const viewport = page.viewportSize();
+        console.log('Current viewport:', viewport);
+        console.log('Expected iPhone 16 viewport:', iPhone16.viewport);
+
+        // Force set viewport if needed
+        if (viewport?.width !== iPhone16.viewport.width || viewport?.height !== iPhone16.viewport.height) {
+            console.log('Setting iPhone 16 viewport...');
+            await page.setViewportSize(iPhone16.viewport);
+        }
+
+        try {
+            console.log(`Navigating to login page: ${LOGIN_URL}`);
+
+            // First navigate to the login page
+            await page.goto(LOGIN_URL, {
+                waitUntil: 'domcontentloaded',
+                timeout: 60000
+            });
+
+            // Wait for login form to be visible
+            await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+            console.log('Login form found, authenticating...');
+
+            // Clear and fill in login credentials with more robust approach
+            console.log('Clearing email field...');
+            await page.locator('input[name="email"]').click();
+            await page.locator('input[name="email"]').fill('');
+            await page.locator('input[name="email"]').type(EMAIL, { delay: 100 });
+
+            console.log('Clearing password field...');
+            await page.locator('input[name="password"]').click();
+            await page.locator('input[name="password"]').fill('');
+            await page.locator('input[name="password"]').type(PASSWORD, { delay: 100 });
+
+            // Wait a moment for fields to be filled
+            await page.waitForTimeout(1000);
+
+            // Verify credentials were filled
+            const emailValue = await page.locator('input[name="email"]').inputValue();
+            const passwordValue = await page.locator('input[name="password"]').inputValue();
+            console.log('Email filled correctly:', emailValue === EMAIL);
+            console.log('Password filled correctly:', passwordValue === PASSWORD);
+            console.log('Actual email value:', emailValue);
+            console.log('Expected email value:', EMAIL);
+
+            // Take screenshot before submitting to verify credentials are filled
+            const beforeSubmitScreenshot = path.join(safariScrollingDir, `before_submit_${timestamp}.png`);
+            await page.screenshot({ path: beforeSubmitScreenshot, fullPage: false });
+            console.log(`Before submit screenshot saved to: ${beforeSubmitScreenshot}`);
+
+            // Click submit without waiting for navigation
+            console.log('Clicking submit button...');
+            await page.click('button[type="submit"]');
+
+            // Wait a bit for any navigation to start
+            await page.waitForTimeout(8000);
+
+            // Take screenshot after login attempt
+            const loginScreenshot = path.join(safariScrollingDir, `after_login_${timestamp}.png`);
+            await page.screenshot({ path: loginScreenshot, fullPage: false });
+            console.log(`After login screenshot saved to: ${loginScreenshot}`);
+
+            console.log('Login submitted, current URL:', page.url());
+
+            // Skip navigation to dashboard and just test whatever page we're on
+            console.log('Skipping navigation to dashboard URL');
+            console.log('Will test scrolling on current page:', page.url());
+
+            // Wait for page to stabilize
+            await page.waitForTimeout(3000);
+
+            // Take a debug screenshot
+            const debugScreenshot = path.join(safariScrollingDir, `debug_screenshot_${timestamp}.png`);
+            await page.screenshot({
+                path: debugScreenshot,
+                fullPage: false
+            });
+            console.log(`Debug screenshot saved to: ${debugScreenshot}`);
+
+            // Take initial screenshot
+            const initialScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_initial.png`);
+            await page.screenshot({
+                path: initialScreenshot,
+                fullPage: false // Just viewport
+            });
+
+            // Get initial metrics
+            const initialMetrics = await page.evaluate(() => {
+                const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+                return {
+                    domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+                    loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
+                    firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0,
+                    largestContentfulPaint: performance.getEntriesByName('largest-contentful-paint')[0]?.startTime || 0,
+                    scrollY: window.scrollY,
+                    viewportHeight: window.innerHeight,
+                    documentHeight: document.documentElement.scrollHeight
+                };
+            });
+
+            const scrollSteps: Array<{
+                step: number;
+                duration: number;
+                scrollPosition: number;
+                timestamp: number;
+            }> = [];
+            const maxScrolls = 5;
+
+            // Perform scrolling test
+            for (let i = 1; i <= maxScrolls; i++) {
+                const scrollStart = Date.now();
+
+                // Smooth scroll down by viewport height
+                await page.evaluate(() => {
+                    return new Promise((resolve) => {
+                        const startY = window.scrollY;
+                        const targetY = startY + window.innerHeight;
+                        const maxY = document.documentElement.scrollHeight - window.innerHeight;
+                        const finalY = Math.min(targetY, maxY);
+
+                        window.scrollTo({
+                            top: finalY,
+                            behavior: 'smooth'
+                        });
+
+                        // Wait for scroll to complete
+                        setTimeout(resolve, 800);
+                    });
+                });
+
+                const scrollEnd = Date.now();
+
+                // Get metrics after scroll
+                const scrollMetrics = await page.evaluate(() => ({
+                    scrollY: window.scrollY,
+                    timestamp: Date.now(),
+                    viewportHeight: window.innerHeight,
+                    documentHeight: document.documentElement.scrollHeight
+                }));
+
+                scrollSteps.push({
+                    step: i,
+                    duration: scrollEnd - scrollStart,
+                    scrollPosition: scrollMetrics.scrollY,
+                    timestamp: scrollMetrics.timestamp
+                });
+
+                // Take screenshot after each scroll
+                const scrollScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_scroll_${i}.png`);
+                await page.screenshot({
+                    path: scrollScreenshot,
+                    fullPage: false
+                });
+
+                // Wait a bit before next scroll
+                await page.waitForTimeout(500);
+
+                // Stop if we've reached the bottom
+                if (scrollMetrics.scrollY >= scrollMetrics.documentHeight - scrollMetrics.viewportHeight - 10) {
+                    console.log(`Reached bottom of page at scroll step ${i}`);
+                    break;
+                }
+            }
+
+            // Get final page info
+            const pageInfo = {
+                title: await page.title(),
+                url: page.url(),
+                userAgent: await page.evaluate(() => navigator.userAgent),
+                viewport: page.viewportSize(),
+                timestamp: new Date().toISOString(),
+                initialMetrics: initialMetrics,
+                scrollSteps: scrollSteps,
+                totalScrollDistance: scrollSteps[scrollSteps.length - 1]?.scrollPosition || 0
+            };
+
+            // Create HTML report
+            const reportHtml = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,24 +320,24 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
     </div>
 </body>
 </html>`;
-      
-      // Save HTML report
-      const reportPath = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_scrolling.report.html`);
-      fs.writeFileSync(reportPath, reportHtml);
-      
-      console.log(`Safari iPhone 16 scrolling test completed for Metricon Dashboard`);
-      console.log(`Report saved to: ${reportPath}`);
-      console.log(`Screenshots saved: ${scrollSteps.length + 1} images`);
-      
-      // Verify report was created
-      expect(fs.existsSync(reportPath)).toBe(true);
-      expect(scrollSteps.length).toBeGreaterThan(0);
-      
-    } catch (error) {
-      console.error(`Safari iPhone 16 scrolling test failed for Metricon Dashboard:`, error);
-      throw error;
-    } finally {
-      await browser.close();
-    }
-  });
+
+            // Save HTML report
+            const reportPath = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_scrolling.report.html`);
+            fs.writeFileSync(reportPath, reportHtml);
+
+            console.log(`Safari iPhone 16 scrolling test completed for Metricon Dashboard`);
+            console.log(`Report saved to: ${reportPath}`);
+            console.log(`Screenshots saved: ${scrollSteps.length + 1} images`);
+
+            // Verify report was created
+            expect(fs.existsSync(reportPath)).toBe(true);
+            expect(scrollSteps.length).toBeGreaterThan(0);
+
+        } catch (error) {
+            console.error(`Safari iPhone 16 scrolling test failed for Metricon Dashboard:`, error);
+            throw error;
+        } finally {
+            await browser.close();
+        }
+    });
 });
