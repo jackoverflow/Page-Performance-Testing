@@ -29,18 +29,34 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       console.log(`Created safari-scrolling directory: ${safariScrollingDir}`);
     }
     
-    // Launch webkit browser with iPhone 16 configuration in non-headless mode
+    // Launch webkit browser with iPhone 16 configuration
     const browser = await webkit.launch({
-      headless: false // Use non-headless mode to debug authentication issues
+      headless: true
     });
     
     const context = await browser.newContext({
       ...iPhone16,
       locale: 'en-US',
       geolocation: { latitude: 14.5995, longitude: 120.9842 }, // Manila, Philippines
+      userAgent: iPhone16.userAgent,
+      viewport: iPhone16.viewport,
+      deviceScaleFactor: iPhone16.deviceScaleFactor,
+      isMobile: iPhone16.isMobile,
+      hasTouch: iPhone16.hasTouch
     });
     
     const page = await context.newPage();
+    
+    // Verify iPhone 16 viewport is set correctly
+    const viewport = page.viewportSize();
+    console.log('Current viewport:', viewport);
+    console.log('Expected iPhone 16 viewport:', iPhone16.viewport);
+    
+    // Force set viewport if needed
+    if (viewport?.width !== iPhone16.viewport.width || viewport?.height !== iPhone16.viewport.height) {
+      console.log('Setting iPhone 16 viewport...');
+      await page.setViewportSize(iPhone16.viewport);
+    }
     
     try {
       console.log(`Navigating to login page: ${LOGIN_URL}`);
