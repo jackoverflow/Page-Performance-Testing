@@ -5,21 +5,21 @@ import path from 'path';
 
 const iPhone16 = devices['iPhone 16'];
 
-// Read URLs from config file (required)
-const configPath = path.join(__dirname, 'test-config.json');
-
-if (!fs.existsSync(configPath)) {
-  throw new Error('test-config.json not found. Please run tests through the dashboard.');
-}
-
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const urls = config.urls;
-
-if (!urls || urls.length === 0) {
-  throw new Error('No URLs found in configuration. Please add URLs through the dashboard.');
-}
-
 test.describe('Safari iPhone 16 Scrolling Tests', () => {
+  // Read URLs from config file inside the test describe block
+  const configPath = path.join(__dirname, 'test-config.json');
+  
+  if (!fs.existsSync(configPath)) {
+    throw new Error('test-config.json not found. Please run tests through the dashboard.');
+  }
+
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const urls = config.urls;
+
+  if (!urls || urls.length === 0) {
+    throw new Error('No URLs found in configuration. Please add URLs through the dashboard.');
+  }
+
   urls.forEach(url => {
     test(`Safari iPhone 16 scrolling test for ${url}`, async () => {
       console.log(`Starting Safari iPhone 16 scrolling test for: ${url}`);
