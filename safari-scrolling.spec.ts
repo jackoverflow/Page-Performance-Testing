@@ -81,50 +81,67 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
               try {
           console.log(`Navigating to ${url} with Safari iPhone 16...`);
           
-          // Navigate directly to target URL (will redirect to login if needed)
-          await page.goto(url, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 60000 
-          });
-          
-          // Check if we're on login page
-          const isLoginPage = await page.locator('input[name="email"]').isVisible();
-          
-          if (isLoginPage) {
-            console.log('Login required, authenticating...');
+          // Special handling for Metricon dashboard URL
+          if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
+            console.log('Metricon dashboard URL detected, starting with login page...');
+            
+            // First navigate to the login page
+            await page.goto('https://mymetricon-nextjs-dev.vercel.app/', { 
+              waitUntil: 'domcontentloaded',
+              timeout: 60000 
+            });
+            
+            // Wait for login form to be visible
+            await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+            console.log('Login form found, authenticating...');
             
             // Fill in login credentials
             await page.fill('input[name="email"]', 'pio@ypdigital.com.au');
             await page.fill('input[name="password"]', 'YPD1g1t4l*');
             
-            // Click submit and wait for any navigation
+            // Click submit
             await page.click('button[type="submit"]');
             
-            // Wait for navigation to complete with longer timeout
+            // Wait for navigation to complete
             await page.waitForLoadState('networkidle', { timeout: 30000 });
+            console.log('Login submitted, current URL:', page.url());
             
-            console.log('After login submission, current URL:', page.url());
+            // Navigate directly to the dashboard URL
+            console.log('Navigating directly to dashboard URL:', url);
+            await page.goto(url, { 
+              waitUntil: 'domcontentloaded',
+              timeout: 60000 
+            });
             
-            // Always navigate directly to the dashboard URL for Metricon
-            if (url.includes('mymetricon-nextjs-dev.vercel.app')) {
-              console.log('Metricon site detected, navigating directly to dashboard...');
-              const dashboardUrl = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
-              await page.goto(dashboardUrl, { 
-                waitUntil: 'domcontentloaded', 
-                timeout: 60000 
-              });
-              
-              // Wait additional time for dashboard to load
-              await page.waitForTimeout(5000);
-              
-              console.log('Navigated to dashboard URL:', page.url());
-            } else if (page.url().includes('mymetricon-nextjs-dev.vercel.app') && !page.url().includes('/dashboard/')) {
-              console.log('Attempting direct navigation to original URL...');
-              await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            // Wait additional time for dashboard to load
+            await page.waitForTimeout(5000);
+            console.log('Dashboard page loaded, URL:', page.url());
+            
+            // Verify we're on the dashboard page
+            if (!page.url().includes('/dashboard/')) {
+              throw new Error('Failed to navigate to dashboard page after login');
             }
+          } else {
+            // Standard flow for non-Metricon URLs
+            await page.goto(url, { 
+              waitUntil: 'domcontentloaded',
+              timeout: 60000 
+            });
             
-            // Skip login check for Metricon dashboard URL
-            if (!url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
+            // Check if we're on login page
+            const isLoginPage = await page.locator('input[name="email"]').isVisible().catch(() => false);
+            
+            if (isLoginPage) {
+              console.log('Login required, authenticating...');
+              
+              // Fill in login credentials
+              await page.fill('input[name="email"]', 'pio@ypdigital.com.au');
+              await page.fill('input[name="password"]', 'YPD1g1t4l*');
+              
+              // Click submit and wait for navigation
+              await page.click('button[type="submit"]');
+              await page.waitForLoadState('networkidle', { timeout: 30000 });
+              
               // Final check - if still showing login form, authentication failed
               const stillOnLogin = await page.locator('input[name="email"]').isVisible().catch(() => false);
               if (stillOnLogin) {
