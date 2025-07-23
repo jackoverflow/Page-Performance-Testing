@@ -114,14 +114,12 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             
             console.log('Login submitted, current URL:', page.url());
             
-            // If not automatically redirected to dashboard, navigate there directly
-            if (!page.url().includes('/dashboard/752662')) {
-              console.log('Navigating directly to dashboard URL');
-              await page.goto(DASHBOARD_URL, {
-                waitUntil: 'domcontentloaded',
-                timeout: 30000
-              });
-            }
+            // Always navigate directly to dashboard URL after login
+            console.log('Navigating directly to dashboard URL');
+            await page.goto(DASHBOARD_URL, {
+              waitUntil: 'domcontentloaded',
+              timeout: 30000
+            });
             
             // Wait for dashboard page to load
             await page.waitForLoadState('domcontentloaded');
@@ -160,28 +158,25 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           // Wait for page to be fully loaded
           await page.waitForLoadState('domcontentloaded');
           
-          // For Metricon dashboard, add debugging and proceed regardless
+          // For Metricon dashboard, verify we're on the correct page
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Final URL after authentication flow:', page.url());
             
-            // Check if we're still on login page but don't fail
-            const isStillOnLogin = await page.locator('input[name="email"]').isVisible().catch(() => false);
-            if (isStillOnLogin) {
-              console.log('Still on login page, attempting one more navigation...');
+            // Verify we're on the dashboard page
+            if (!page.url().includes('/dashboard/752662')) {
+              console.log('Not on dashboard page, forcing final navigation...');
               await page.goto('https://mymetricon-nextjs-dev.vercel.app/dashboard/752662', {
                 waitUntil: 'domcontentloaded',
                 timeout: 30000
               });
-              await page.waitForTimeout(5000);
-              console.log('After forced navigation, URL:', page.url());
+              await page.waitForTimeout(3000);
+              console.log('Final navigation complete, URL:', page.url());
             }
             
-            // Get page title and content for debugging
+            // Get page info for verification
             const pageTitle = await page.title();
-            const pageContent = await page.content();
             console.log('Page title:', pageTitle);
-            console.log('Page content length:', pageContent.length);
-            console.log('Proceeding with scrolling test regardless of authentication state...');
+            console.log('Ready to start scrolling test on dashboard page');
           }
         
         // Get initial metrics
