@@ -102,76 +102,50 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
     try {
         const { urls, thresholds } = req.body;
 
-        console.log('Received URLs for scrolling tests:', urls);
-        console.log('Received thresholds:', thresholds);
-
         if (!urls || urls.length === 0) {
             return res.status(400).json({ error: 'No URLs provided' });
         }
 
-        console.log('Running Safari iPhone 16 scrolling tests for URLs:', urls);
-
-        // Write config to JSON file for the test to read
+        // Ensure config file is created
         const configPath = path.join(__dirname, 'test-config.json');
         fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
 
-        // Check if the config file was created successfully
         if (!fs.existsSync(configPath)) {
-            console.error('❌ Failed to create test-config.json');
-            return res.status(500).json({ error: 'Failed to create test-config.json' });
+            throw new Error('Failed to create test-config.json');
         }
 
-        console.log('✅ Config file created successfully');
+        // Run the scrolling test command
+        const command = `npx playwright test safari-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
+        const { stdout, stderr } = await execAsync(command, { timeout: 300000 });
 
-        try {
-            // Run the safari-scrolling.spec.ts file with the safari-scrolling project
-            const command = `npx playwright test safari-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
-            console.log('Executing scrolling test command:', command);
-            
-            const { stdout, stderr } = await execAsync(command, { 
-                timeout: 300000, // 5 minutes timeout
-                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
-            });
-
-            console.log('Scrolling test stdout:', stdout);
-            if (stderr) {
-                console.log('Scrolling test stderr:', stderr);
-            }
-
-            // Count generated reports in safari-scrolling directory
-            let reportCount = 0;
-            const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
-            
-            if (fs.existsSync(scrollingReportsDir)) {
-                const files = fs.readdirSync(scrollingReportsDir);
-                reportCount = files.filter(file => file.endsWith('.report.html')).length;
-                console.log('Found scrolling report files:', files.filter(file => file.endsWith('.report.html')));
-            }
-
-            console.log('Scrolling tests completed successfully');
-            console.log(`Generated ${reportCount} scrolling reports`);
-            
-            res.json({ 
-                success: true, 
-                reportCount: reportCount,
-                message: `Safari iPhone 16 scrolling tests completed successfully for ${urls.length} URLs`,
-                urls: urls
-            });
-
-        } finally {
-            // Always clean up config file
-            if (fs.existsSync(configPath)) {
-                fs.unlinkSync(configPath);
-            }
+        if (stderr) {
+            console.error('Error running scrolling tests:', stderr);
+            return res.status(500).json({ error: 'Error running scrolling tests', details: stderr });
         }
+
+        // Count reports and respond
+        let reportCount = 0;
+        const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
+        
+        if (fs.existsSync(scrollingReportsDir)) {
+            const files = fs.readdirSync(scrollingReportsDir);
+            reportCount = files.filter(file => file.endsWith('.report.html')).length;
+            console.log('Found scrolling report files:', files.filter(file => file.endsWith('.report.html')));
+        }
+
+        console.log('Scrolling tests completed successfully');
+        console.log(`Generated ${reportCount} scrolling reports`);
+        
+        res.json({ 
+            success: true, 
+            reportCount: reportCount,
+            message: `Safari iPhone 16 scrolling tests completed successfully for ${urls.length} URLs`,
+            urls: urls
+        });
 
     } catch (error) {
-        console.error('Error running scrolling tests:', error);
-        res.status(500).json({ 
-            error: 'Failed to run scrolling tests', 
-            details: error.message || 'Unknown error occurred',
-            command: error.cmd || 'Unknown command'
-        });
+        console.error('Error in scrolling tests endpoint:', error);
+        res.status(500).json({ error: 'Failed to run scrolling tests', details: error.message });
     }
 });
 
