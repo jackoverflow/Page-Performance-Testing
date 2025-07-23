@@ -56,23 +56,38 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       console.log('Login form found, authenticating...');
 
       // Clear and fill in login credentials with more robust approach
-      await page.locator('input[name="email"]').clear();
-      await page.locator('input[name="password"]').clear();
-      await page.locator('input[name="email"]').fill(EMAIL);
-      await page.locator('input[name="password"]').fill(PASSWORD);
+      console.log('Clearing email field...');
+      await page.locator('input[name="email"]').click();
+      await page.locator('input[name="email"]').fill('');
+      await page.locator('input[name="email"]').type(EMAIL, { delay: 100 });
+      
+      console.log('Clearing password field...');
+      await page.locator('input[name="password"]').click();
+      await page.locator('input[name="password"]').fill('');
+      await page.locator('input[name="password"]').type(PASSWORD, { delay: 100 });
+      
+      // Wait a moment for fields to be filled
+      await page.waitForTimeout(1000);
       
       // Verify credentials were filled
       const emailValue = await page.locator('input[name="email"]').inputValue();
       const passwordValue = await page.locator('input[name="password"]').inputValue();
-      console.log('Email filled:', emailValue === EMAIL);
-      console.log('Password filled:', passwordValue.length > 0);
+      console.log('Email filled correctly:', emailValue === EMAIL);
+      console.log('Password filled correctly:', passwordValue === PASSWORD);
+      console.log('Actual email value:', emailValue);
+      console.log('Expected email value:', EMAIL);
 
+      // Take screenshot before submitting to verify credentials are filled
+      const beforeSubmitScreenshot = path.join(safariScrollingDir, `before_submit_${timestamp}.png`);
+      await page.screenshot({ path: beforeSubmitScreenshot, fullPage: true });
+      console.log(`Before submit screenshot saved to: ${beforeSubmitScreenshot}`);
+      
       // Click submit without waiting for navigation
       console.log('Clicking submit button...');
       await page.click('button[type="submit"]');
       
       // Wait a bit for any navigation to start
-      await page.waitForTimeout(5000);
+      await page.waitForTimeout(8000);
 
       // Take screenshot after login attempt
       const loginScreenshot = path.join(safariScrollingDir, `after_login_${timestamp}.png`);
