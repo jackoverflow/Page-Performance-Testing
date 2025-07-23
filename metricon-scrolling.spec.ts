@@ -3,7 +3,14 @@ import { webkit, devices } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
-const iPhone16 = devices['iPhone 16'];
+// Define iPhone 16 manually since it might not be available in older Playwright versions
+const iPhone16 = {
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 3,
+  isMobile: true,
+  hasTouch: true
+};
 
 // Metricon specific credentials
 const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
@@ -37,12 +44,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
     const context = await browser.newContext({
       ...iPhone16,
       locale: 'en-US',
-      geolocation: { latitude: 14.5995, longitude: 120.9842 }, // Manila, Philippines
-      userAgent: iPhone16.userAgent,
-      viewport: iPhone16.viewport,
-      deviceScaleFactor: iPhone16.deviceScaleFactor,
-      isMobile: iPhone16.isMobile,
-      hasTouch: iPhone16.hasTouch
+      geolocation: { latitude: 14.5995, longitude: 120.9842 } // Manila, Philippines
     });
     
     const page = await context.newPage();
