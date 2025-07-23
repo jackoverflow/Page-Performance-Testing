@@ -612,6 +612,12 @@
                     this.showStatus('Please add at least one URL to test', 'error');
                     return;
                 }
+                
+                // Check if Metricon dashboard URL is included
+                const hasMetriconUrl = urls.some(url => url.includes('mymetricon-nextjs-dev.vercel.app/dashboard'));
+                if (hasMetriconUrl) {
+                    console.log('Metricon dashboard URL detected, will use specialized test');
+                }
 
                 // Start the timer
                 this.startTimer();
