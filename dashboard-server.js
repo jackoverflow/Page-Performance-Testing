@@ -177,15 +177,16 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
 
                 if (stderr && !stderr.includes('Warning')) {
                     console.error('Error running regular scrolling tests:', stderr);
-                return res.status(500).json({ error: 'Error running scrolling tests', details: stderr });
+                    return res.status(500).json({ error: 'Error running regular scrolling tests', details: stderr });
+                }
+            } catch (execError) {
+                console.error('Error executing regular command:', execError);
+                return res.status(500).json({
+                    error: 'Failed to execute regular scrolling tests',
+                    details: execError.message || 'Unknown error occurred',
+                    command: execError.cmd || 'Unknown command'
+                });
             }
-        } catch (execError) {
-            console.error('Error executing command:', execError);
-            return res.status(500).json({
-                error: 'Failed to execute scrolling tests',
-                details: execError.message || 'Unknown error occurred',
-                command: execError.cmd || 'Unknown command'
-            });
         }
 
         // Count reports and respond
