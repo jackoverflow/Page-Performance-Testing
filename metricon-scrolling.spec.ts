@@ -67,18 +67,29 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       
       console.log('Login submitted, current URL:', page.url());
       
-      // If not automatically redirected to dashboard, navigate there directly
+      // Always navigate directly to dashboard URL after login
+      console.log('Navigating directly to dashboard URL');
+      await page.goto(DASHBOARD_URL, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 30000 
+      });
+      
+      // Wait for dashboard page to load and verify
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000); // Extra wait for content to load
+      
+      console.log('Dashboard page loaded, URL:', page.url());
+      
+      // Verify we're actually on the dashboard page
       if (!page.url().includes('/dashboard/752662')) {
-        console.log('Navigating directly to dashboard URL');
+        console.log('Still not on dashboard, trying one more time...');
         await page.goto(DASHBOARD_URL, { 
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'networkidle',
           timeout: 30000 
         });
+        await page.waitForTimeout(5000);
+        console.log('Final URL:', page.url());
       }
-      
-      // Wait for dashboard page to load
-      await page.waitForLoadState('domcontentloaded');
-      console.log('Dashboard page loaded, URL:', page.url());
       
       // Take initial screenshot
       const initialScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_initial.png`);
