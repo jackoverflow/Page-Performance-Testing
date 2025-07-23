@@ -9,16 +9,35 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
   // Read URLs from config file inside the test describe block
   const configPath = path.join(__dirname, 'test-config.json');
   
+  console.log('Looking for test-config.json at:', configPath);
+  
   if (!fs.existsSync(configPath)) {
+    console.error('test-config.json not found at:', configPath);
     throw new Error('test-config.json not found. Please run tests through the dashboard.');
   }
-
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  
+  console.log('test-config.json found, reading content...');
+  
+  let config;
+  try {
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    console.log('Raw config content:', configContent);
+    config = JSON.parse(configContent);
+  } catch (error) {
+    console.error('Error parsing test-config.json:', error);
+    throw new Error(`Failed to parse test-config.json: ${error.message}`);
+  }
+  
+  console.log('Parsed config:', config);
+  
   const urls = config.urls;
-
+  
   if (!urls || urls.length === 0) {
+    console.error('No URLs found in configuration');
     throw new Error('No URLs found in configuration. Please add URLs through the dashboard.');
   }
+  
+  console.log('Found URLs in configuration:', urls);
 
   urls.forEach(url => {
     test(`Safari iPhone 16 scrolling test for ${url}`, async () => {
@@ -59,17 +78,48 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
       const page = await context.newPage();
       
-      try {
-        console.log(`Navigating to ${url} with Safari iPhone 16...`);
-        
-        // Navigate to the page
-        await page.goto(url, { 
-          waitUntil: 'networkidle',
-          timeout: 60000 
-        });
-        
-        // Wait for page to be fully loaded
-        await page.waitForLoadState('domcontentloaded');
+              try {
+          console.log(`Navigating to ${url} with Safari iPhone 16...`);
+          
+          // Navigate directly to target URL (will redirect to login if needed)
+          await page.goto(url, { 
+            waitUntil: 'domcontentloaded',
+            timeout: 60000 
+          });
+          
+          // Check if we're on login page
+          const isLoginPage = await page.locator('input[name="email"]').isVisible();
+          
+          if (isLoginPage) {
+            console.log('Login required, authenticating...');
+            
+            // Fill in login credentials
+            await page.fill('input[name="email"]', 'pio@ypdigital.com.au');
+            await page.fill('input[name="password"]', 'YPD1g1t4l*');
+            
+            // Click submit and wait for any navigation
+            await page.click('button[type="submit"]');
+            
+            // Wait for navigation to complete
+            await page.waitForLoadState('networkidle', { timeout: 20000 });
+            
+            // If still on login page, try manual navigation to dashboard
+            if (page.url().includes('mymetricon-nextjs-dev.vercel.app') && !page.url().includes('/dashboard/')) {
+              console.log('Attempting direct navigation to dashboard...');
+              await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            }
+            
+            // Final check - if still showing login form, authentication failed
+            const stillOnLogin = await page.locator('input[name="email"]').isVisible().catch(() => false);
+            if (stillOnLogin) {
+              throw new Error('Login failed - still on login page after authentication attempt');
+            }
+            
+            console.log('Authentication completed, proceeding with test');
+          }
+          
+          // Wait for page to be fully loaded
+          await page.waitForLoadState('domcontentloaded');
         
         // Get initial metrics
         const initialMetrics = await page.evaluate(() => {

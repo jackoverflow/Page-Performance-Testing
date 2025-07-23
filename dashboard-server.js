@@ -12,6 +12,7 @@ const execAsync = promisify(exec);
 app.use(express.json());
 app.use(express.static('.'));
 app.use('/safari-scrolling', express.static(path.join(__dirname, 'safari-scrolling')));
+app.use('/safari-reports', express.static(path.join(__dirname, 'safari-reports')));
 
 // Serve the dashboard
 app.get('/', (req, res) => {
@@ -102,13 +103,31 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
     try {
         const { urls, thresholds } = req.body;
 
+        console.log('Received URLs for scrolling tests:', urls); // Debugging log
+        console.log('Received thresholds for scrolling tests:', thresholds); // Debugging log
+
         if (!urls || urls.length === 0) {
             return res.status(400).json({ error: 'No URLs provided' });
         }
 
+        // Ensure safari-scrolling directory exists
+        const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
+        if (!fs.existsSync(scrollingReportsDir)) {
+            fs.mkdirSync(scrollingReportsDir, { recursive: true });
+            console.log(`Created safari-scrolling directory: ${scrollingReportsDir}`);
+        }
+
         // Ensure config file is created
         const configPath = path.join(__dirname, 'test-config.json');
-        fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
+        console.log('Creating test-config.json at:', configPath);
+        
+        try {
+            fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
+            console.log('test-config.json content:', fs.readFileSync(configPath, 'utf8'));
+        } catch (writeError) {
+            console.error('Error writing test-config.json:', writeError);
+            return res.status(500).json({ error: 'Failed to create test-config.json', details: writeError.message });
+        }
 
         if (!fs.existsSync(configPath)) {
             throw new Error('Failed to create test-config.json');
@@ -116,16 +135,31 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
 
         // Run the scrolling test command
         const command = `npx playwright test safari-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
-        const { stdout, stderr } = await execAsync(command, { timeout: 300000 });
-
-        if (stderr) {
-            console.error('Error running scrolling tests:', stderr);
-            return res.status(500).json({ error: 'Error running scrolling tests', details: stderr });
+        console.log('Executing command:', command);
+        
+        try {
+            const { stdout, stderr } = await execAsync(command, { 
+                timeout: 300000, // 5 minutes timeout
+                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+            });
+            
+            console.log('Test stdout:', stdout);
+            
+            if (stderr) {
+                console.error('Error running scrolling tests:', stderr);
+                return res.status(500).json({ error: 'Error running scrolling tests', details: stderr });
+            }
+        } catch (execError) {
+            console.error('Error executing command:', execError);
+            return res.status(500).json({ 
+                error: 'Failed to execute scrolling tests', 
+                details: execError.message || 'Unknown error occurred',
+                command: execError.cmd || 'Unknown command'
+            });
         }
 
         // Count reports and respond
         let reportCount = 0;
-        const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
         
         if (fs.existsSync(scrollingReportsDir)) {
             const files = fs.readdirSync(scrollingReportsDir);
@@ -149,10 +183,58 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
     }
 });
 
+// API endpoint to run Metricon Dashboard test
+app.post('/api/run-metricon-test', async (req, res) => {
+    try {
+        console.log('Running Metricon Dashboard test');
+        
+        // Run the Metricon dashboard test command
+        const command = `npx playwright test metricon-dashboard.spec.ts --project=metricon-dashboard --reporter=list`;
+        const { stdout, stderr } = await execAsync(command, { 
+            timeout: 300000, // 5 minutes timeout
+            maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+        });
+
+        console.log('Test stdout:', stdout);
+        if (stderr) {
+            console.log('Test stderr:', stderr);
+        }
+
+        // Count reports and respond
+        let reportCount = 0;
+        const reportsDir = path.join(__dirname, 'safari-reports');
+        
+        if (fs.existsSync(reportsDir)) {
+            const files = fs.readdirSync(reportsDir);
+            reportCount = files.filter(file => file.endsWith('.report.html')).length;
+            console.log('Found Metricon report files:', files.filter(file => file.endsWith('.report.html')));
+        }
+
+        console.log('Metricon Dashboard test completed successfully');
+        console.log(`Generated ${reportCount} reports`);
+        
+        res.json({ 
+            success: true, 
+            reportCount: reportCount,
+            message: `Metricon Dashboard test completed successfully`,
+            url: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662'
+        });
+
+    } catch (error) {
+        console.error('Error running Metricon Dashboard test:', error);
+        res.status(500).json({ 
+            error: 'Failed to run Metricon Dashboard test', 
+            details: error.message || 'Unknown error occurred',
+            command: error.cmd || 'Unknown command'
+        });
+    }
+});
+
 // Endpoint to fetch reports dynamically
 app.get('/api/reports', (req, res) => {
     const lighthouseDir = path.join(__dirname, 'lighthouse');
     const scrollingDir = path.join(__dirname, 'safari-scrolling');
+    const metriconDir = path.join(__dirname, 'safari-reports');
     
     let allReports = [];
     
@@ -181,6 +263,10 @@ app.get('/api/reports', (req, res) => {
                         url = hostname.includes('_') ? 
                             `https://${hostname.replace(/_/g, '.')}` : 
                             `https://${hostname}`;
+                    } else if (reportType === 'metricon') {
+                        // Metricon reports: mymetricon_nextjs_dev_dashboard_timestamp_scrolling.report.html
+                        hostname = 'mymetricon-nextjs-dev';
+                        url = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
                     } else {
                         // Lighthouse reports: hostname_timestamp.report.html
                         const parts = baseName.split('_');
@@ -204,12 +290,13 @@ app.get('/api/reports', (req, res) => {
         }
     };
     
-    // Get reports from both directories
+    // Get reports from all directories
     const lighthouseReports = processReportsFromDir(lighthouseDir, 'lighthouse', 'lighthouse');
     const scrollingReports = processReportsFromDir(scrollingDir, 'safari-scrolling', 'scrolling');
+    const metriconReports = processReportsFromDir(metriconDir, 'safari-reports', 'metricon');
     
     // Combine and sort all reports by date (newest first)
-    allReports = [...lighthouseReports, ...scrollingReports]
+    allReports = [...lighthouseReports, ...scrollingReports, ...metriconReports]
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     console.log('Found reports:', allReports);

@@ -8,6 +8,8 @@ A comprehensive performance testing solution using Playwright and Lighthouse.
 - **Configurable Thresholds**: Set performance, accessibility, and SEO thresholds
 - **Lighthouse Integration**: Automated performance audits with detailed reports
 - **Real-time Results**: View test results and generated reports
+- **Safari iPhone 16 Scrolling Tests**: Test scrolling performance on Safari iPhone 16
+- **Metricon Dashboard Testing**: Specialized test for Metricon Dashboard with authentication
 
 ## Quick Start
 
@@ -18,9 +20,15 @@ npm install
 
 2. Start the dashboard:
 ```bash
+# On Linux/Mac:
 npm run dashboard
 # or
 ./start-dashboard.sh
+
+# On Windows:
+npm run dashboard
+# or
+start-dashboard.bat
 ```
 
 3. Open your browser to `http://localhost:3000`
@@ -28,6 +36,8 @@ npm run dashboard
 4. Add URLs through the dashboard interface
 
 5. Click "Run Performance Tests" to start testing
+
+6. You can also run Safari iPhone 16 scrolling tests or the Metricon Dashboard test using the respective buttons
 
 ## Important Notes
 
@@ -40,9 +50,13 @@ npm run dashboard
 
 - `dashboard.html` - Web interface for managing URLs and viewing results
 - `dashboard-server.js` - Express server handling API requests
-- `performance.spec.ts` - Playwright test suite (requires dashboard configuration)
+- `performance.spec.ts` - Playwright test suite for Lighthouse performance tests
+- `safari-scrolling.spec.ts` - Playwright test suite for Safari iPhone 16 scrolling tests
+- `metricon-dashboard.spec.ts` - Specialized test for Metricon Dashboard with authentication
 - `test-config.json` - Temporary config file (auto-generated during tests)
 - `lighthouse/` - Generated Lighthouse reports
+- `safari-scrolling/` - Generated Safari scrolling test reports and screenshots
+- `safari-reports/` - Generated Metricon Dashboard test reports and screenshots
 - `performance-reports/` - Aggregated performance reports
 
 ## Configuration
