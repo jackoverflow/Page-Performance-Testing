@@ -85,15 +85,17 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Metricon dashboard URL detected, starting authentication flow...');
             
-            // First navigate to the login page
             const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
+            const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
             const EMAIL = 'pio@ypdigital.com.au';
             const PASSWORD = 'YPD1g1t4l*';
             
             console.log(`Navigating to login page: ${LOGIN_URL}`);
-            await page.goto(LOGIN_URL, { 
+            
+            // First navigate to the login page
+            await page.goto(LOGIN_URL, {
               waitUntil: 'domcontentloaded',
-              timeout: 60000 
+              timeout: 60000
             });
             
             // Wait for login form to be visible
@@ -109,14 +111,15 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             
             // Wait for navigation to complete
             await page.waitForLoadState('networkidle', { timeout: 30000 });
+            
             console.log('Login submitted, current URL:', page.url());
             
             // If not automatically redirected to dashboard, navigate there directly
             if (!page.url().includes('/dashboard/752662')) {
               console.log('Navigating directly to dashboard URL');
-              await page.goto(url, { 
+              await page.goto(DASHBOARD_URL, {
                 waitUntil: 'domcontentloaded',
-                timeout: 30000 
+                timeout: 30000
               });
             }
             
