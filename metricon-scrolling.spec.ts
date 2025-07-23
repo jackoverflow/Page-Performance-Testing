@@ -43,53 +43,54 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
     const page = await context.newPage();
     
     try {
-      console.log(`Navigating to login page: ${LOGIN_URL}`);
+      console.log(`Using direct navigation to dashboard URL: ${DASHBOARD_URL}`);
       
-      // First navigate to the login page
-      await page.goto(LOGIN_URL, { 
+      // Skip login and go directly to dashboard
+      await page.goto(DASHBOARD_URL, { 
         waitUntil: 'domcontentloaded',
         timeout: 60000 
       });
       
-      // Wait for login form to be visible
-      await page.waitForSelector('input[name="email"]', { timeout: 10000 });
-      console.log('Login form found, authenticating...');
+      // Check if we're on login page
+      const isLoginPage = await page.locator('input[name="email"]').isVisible().catch(() => false);
       
-      // Fill in login credentials
-      await page.fill('input[name="email"]', EMAIL);
-      await page.fill('input[name="password"]', PASSWORD);
-      
-      // Click submit and wait for navigation
-      await page.click('button[type="submit"]');
-      
-      // Wait for navigation to complete
-      await page.waitForLoadState('networkidle', { timeout: 30000 });
-      
-      console.log('Login submitted, current URL:', page.url());
-      
-      // Always navigate directly to dashboard URL after login
-      console.log('Navigating directly to dashboard URL');
-      await page.goto(DASHBOARD_URL, { 
-        waitUntil: 'domcontentloaded',
-        timeout: 30000 
-      });
-      
-      // Wait for dashboard page to load and verify
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000); // Extra wait for content to load
-      
-      console.log('Dashboard page loaded, URL:', page.url());
-      
-      // Verify we're actually on the dashboard page
-      if (!page.url().includes('/dashboard/752662')) {
-        console.log('Still not on dashboard, trying one more time...');
+      if (isLoginPage) {
+        console.log('Login page detected, authenticating...');
+        
+        // Fill in login credentials
+        await page.fill('input[name="email"]', EMAIL);
+        await page.fill('input[name="password"]', PASSWORD);
+        
+        // Click submit and wait for navigation
+        await page.click('button[type="submit"]');
+        
+        // Wait for navigation to complete
+        await page.waitForLoadState('networkidle', { timeout: 30000 });
+        
+        console.log('Login submitted, current URL:', page.url());
+        
+        // Always navigate directly to dashboard URL after login
+        console.log('Navigating directly to dashboard URL');
         await page.goto(DASHBOARD_URL, { 
           waitUntil: 'networkidle',
-          timeout: 30000 
+          timeout: 60000 
         });
-        await page.waitForTimeout(5000);
-        console.log('Final URL:', page.url());
       }
+      
+      // Wait for dashboard page to load
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(5000); // Extra wait for content to load
+      
+      console.log('Current page URL:', page.url());
+      console.log('Current page title:', await page.title());
+      
+      // Take a screenshot of whatever page we're on for debugging
+      const debugScreenshot = path.join(safariScrollingDir, `debug_screenshot_${timestamp}.png`);
+      await page.screenshot({ 
+        path: debugScreenshot,
+        fullPage: true
+      });
+      console.log(`Debug screenshot saved to: ${debugScreenshot}`);
       
       // Take initial screenshot
       const initialScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_initial.png`);
