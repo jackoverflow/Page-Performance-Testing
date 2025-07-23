@@ -83,10 +83,15 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           
           // Special handling for Metricon dashboard URL
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
-            console.log('Metricon dashboard URL detected, starting with login page...');
+            console.log('Metricon dashboard URL detected, starting authentication flow...');
             
             // First navigate to the login page
-            await page.goto('https://mymetricon-nextjs-dev.vercel.app/', { 
+            const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
+            const EMAIL = 'pio@ypdigital.com.au';
+            const PASSWORD = 'YPD1g1t4l*';
+            
+            console.log(`Navigating to login page: ${LOGIN_URL}`);
+            await page.goto(LOGIN_URL, { 
               waitUntil: 'domcontentloaded',
               timeout: 60000 
             });
@@ -96,14 +101,14 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             console.log('Login form found, authenticating...');
             
             // Fill in login credentials
-            await page.fill('input[name="email"]', 'pio@ypdigital.com.au');
-            await page.fill('input[name="password"]', 'YPD1g1t4l*');
+            await page.fill('input[name="email"]', EMAIL);
+            await page.fill('input[name="password"]', PASSWORD);
             
             // Click submit and wait for navigation
-            await Promise.all([
-              page.waitForLoadState('networkidle', { timeout: 30000 }),
-              page.click('button[type="submit"]')
-            ]);
+            await page.click('button[type="submit"]');
+            
+            // Wait for navigation to complete
+            await page.waitForLoadState('networkidle', { timeout: 30000 });
             
             console.log('Login submitted, current URL:', page.url());
             
@@ -119,9 +124,6 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             // Wait for dashboard page to load
             await page.waitForLoadState('domcontentloaded');
             console.log('Dashboard page loaded, URL:', page.url());
-            
-            // Check if we successfully navigated away from login
-            console.log('Final URL after authentication:', page.url());
           } else {
             // Standard flow for non-Metricon URLs
             await page.goto(url, { 
