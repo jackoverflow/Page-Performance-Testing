@@ -137,7 +137,8 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         // Check if this is a Metricon URL and use the appropriate test
         const isMetriconUrl = urls.some(url => url.includes('mymetricon-nextjs-dev.vercel.app'));
         const testFile = isMetriconUrl ? 'metricon-scrolling.spec.ts' : 'safari-scrolling.spec.ts';
-        const projectName = isMetriconUrl ? 'metricon-scrolling' : 'safari-scrolling';
+        // Always use safari-scrolling project since metricon-scrolling project may not be configured
+        const projectName = 'safari-scrolling';
         
         // Run the appropriate scrolling test command
         const command = `npx playwright test ${testFile} --project=${projectName} --reporter=list`;
