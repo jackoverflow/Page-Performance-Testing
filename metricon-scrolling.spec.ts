@@ -29,9 +29,9 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       console.log(`Created safari-scrolling directory: ${safariScrollingDir}`);
     }
     
-    // Launch webkit browser with iPhone 16 configuration
+    // Launch webkit browser with iPhone 16 configuration in non-headless mode
     const browser = await webkit.launch({
-      headless: true
+      headless: false // Use non-headless mode to debug authentication issues
     });
     
     const context = await browser.newContext({
@@ -55,30 +55,66 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       await page.waitForSelector('input[name="email"]', { timeout: 10000 });
       console.log('Login form found, authenticating...');
 
-      // Fill in login credentials
-      await page.fill('input[name="email"]', EMAIL);
-      await page.fill('input[name="password"]', PASSWORD);
+      // Clear and fill in login credentials with more robust approach
+      await page.locator('input[name="email"]').clear();
+      await page.locator('input[name="password"]').clear();
+      await page.locator('input[name="email"]').fill(EMAIL);
+      await page.locator('input[name="password"]').fill(PASSWORD);
+      
+      // Verify credentials were filled
+      const emailValue = await page.locator('input[name="email"]').inputValue();
+      const passwordValue = await page.locator('input[name="password"]').inputValue();
+      console.log('Email filled:', emailValue === EMAIL);
+      console.log('Password filled:', passwordValue.length > 0);
 
-      // Click submit and wait for navigation
-      await page.click('button[type="submit"]');
+      // Click submit and wait for navigation with Promise.all
+      console.log('Clicking submit button...');
+      await Promise.all([
+        page.waitForLoadState('networkidle', { timeout: 60000 }),
+        page.click('button[type="submit"]')
+      ]);
 
-      // Wait for navigation to complete
-      await page.waitForLoadState('networkidle', { timeout: 30000 });
+      // Take screenshot after login attempt
+      const loginScreenshot = path.join(safariScrollingDir, `after_login_${timestamp}.png`);
+      await page.screenshot({ path: loginScreenshot, fullPage: true });
+      console.log(`After login screenshot saved to: ${loginScreenshot}`);
 
       console.log('Login submitted, current URL:', page.url());
 
-      // If not automatically redirected to dashboard, navigate there directly
-      if (!page.url().includes('/dashboard/752662')) {
-        console.log('Navigating directly to dashboard URL');
-        await page.goto(DASHBOARD_URL, {
-          waitUntil: 'domcontentloaded',
-          timeout: 30000
-        });
-      }
+      // Force navigate to dashboard URL regardless
+      console.log('Force navigating to dashboard URL');
+      await page.goto(DASHBOARD_URL, {
+        waitUntil: 'networkidle',
+        timeout: 60000
+      });
+      
+      // Wait extra time for any redirects
+      console.log('Waiting extra time for page to stabilize...');
+      await page.waitForTimeout(5000);
 
       // Wait for dashboard page to load
-      await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
       console.log('Dashboard page loaded, URL:', page.url());
+      
+      // Check if we're still on login page
+      const isStillOnLogin = await page.locator('input[name="email"]').isVisible().catch(() => false);
+      if (isStillOnLogin) {
+        console.log('WARNING: Still on login page after authentication attempt');
+        
+        // Try one more time with different approach
+        console.log('Trying alternative authentication approach...');
+        await page.fill('input[name="email"]', EMAIL);
+        await page.fill('input[name="password"]', PASSWORD);
+        await page.click('button[type="submit"]');
+        await page.waitForTimeout(5000);
+        
+        // Force navigation to dashboard again
+        await page.goto(DASHBOARD_URL + '?forceAuth=true', {
+          waitUntil: 'networkidle',
+          timeout: 60000
+        });
+        await page.waitForTimeout(5000);
+      }
       
       // Take a debug screenshot
       const debugScreenshot = path.join(safariScrollingDir, `debug_screenshot_${timestamp}.png`);
