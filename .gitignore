@@ -2,4 +2,18 @@
 node_modules/
 
 # Lighthouse reports
-lighthouse/ 
+lighthouse/
+
+# Test results and videos
+test-results/
+safari-scrolling/
+test-videos/
+
+# Performance reports
+performance-reports/
+
+# Temporary test configuration
+test-config.json
+
+# JUnit test results
+performance-results.xml 

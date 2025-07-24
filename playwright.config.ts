@@ -1,6 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
+  // Video recording settings
+  outputDir: './test-results',
+  use: {
+    // Base settings for all projects
+    video: 'on',
+  },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
@@ -58,7 +64,8 @@ export default defineConfig({
         ignoreHTTPSErrors: true,
         bypassCSP: true,
         locale: 'en-US',
-        geolocation: { latitude: 14.5995, longitude: 120.9842 }
+        geolocation: { latitude: 14.5995, longitude: 120.9842 },
+        video: 'on'
       }
     }
   ],

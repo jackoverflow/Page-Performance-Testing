@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { webkit, devices } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,7 +18,7 @@ const EMAIL = 'pio@ypdigital.com.au';
 const PASSWORD = 'YPD1g1t4l*';
 
 test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
-    test('Safari iPhone 16 scrolling test for Metricon Dashboard', async () => {
+    test('Safari iPhone 16 scrolling test for Metricon Dashboard', async ({ page }) => {
         console.log(`Starting Safari iPhone 16 scrolling test for Metricon Dashboard`);
 
         // Create a safe filename
@@ -36,18 +35,8 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
             console.log(`Created safari-scrolling directory: ${safariScrollingDir}`);
         }
 
-        // Launch webkit browser with iPhone 16 configuration
-        const browser = await webkit.launch({
-            headless: true
-        });
-
-        const context = await browser.newContext({
-            ...iPhone16,
-            locale: 'en-US',
-            geolocation: { latitude: 14.5995, longitude: 120.9842 } // Manila, Philippines
-        });
-
-        const page = await context.newPage();
+        // Set iPhone 16 viewport since it's configured in playwright.config.ts
+        await page.setViewportSize(iPhone16.viewport);
 
         // Verify iPhone 16 viewport is set correctly
         const viewport = page.viewportSize();
@@ -337,7 +326,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
             console.error(`Safari iPhone 16 scrolling test failed for Metricon Dashboard:`, error);
             throw error;
         } finally {
-            await browser.close();
+            // Page will be closed automatically by Playwright test runner
         }
     });
 });
