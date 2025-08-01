@@ -483,7 +483,7 @@
 
             init() {
                 // Add initial URL inputs
-                this.addUrlInput('https://annix.com.au');
+                this.addUrlInput('https://mymetricon-nextjs-dev.vercel.app/dashboard/752662');
                 // this.addUrlInput('https://beachwoodhomes.com.au/home-designs');
                 // this.addUrlInput('');
 
@@ -767,10 +767,13 @@
                     <div class="report-card">
                         <h4>${report.name}</h4>
                         <p><strong>URL:</strong> ${report.url}</p>
-                        <p><strong>Type:</strong> ${report.type === 'scrolling' ? '📱 Safari Scrolling' : '🚀 Lighthouse'}</p>
+                        <p><strong>Type:</strong> ${report.type === 'scrolling' ? '📱 Safari Scrolling' : report.type === 'metricon' ? '🏠 Metricon' : '🚀 Lighthouse'}</p>
                         <p><strong>Date:</strong> ${new Date(report.date).toLocaleDateString()}</p>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <a href="${report.path}" target="_blank" class="report-link">View Report →</a>
+                        ${report.screenshotCount > 0 ? `<p><strong>Screenshots:</strong> ${report.screenshotCount} images</p>` : ''}
+                        ${report.videoCount > 0 ? `<p><strong>Videos:</strong> ${report.videoCount} files</p>` : ''}
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                            <a href="${report.path}" target="_blank" class="report-link">📊 View Report</a>
+                            ${report.type === 'scrolling' ? `<button class="btn btn-secondary" onclick="window.dashboard.viewArtifacts('${report.name}')" style="font-size: 12px; padding: 4px 8px;">📸 View Media</button>` : ''}
                             <button class="btn btn-danger" onclick="window.dashboard.deleteReport('${report.name}')" style="font-size: 12px; padding: 4px 8px;">🗑️ Delete</button>
                         </div>
                     </div>
@@ -799,6 +802,103 @@
                     console.error('Error deleting report:', error);
                     this.showStatus(`Error deleting report: ${error.message}`, 'error');
                 }
+            }
+
+            async viewArtifacts(reportName) {
+                try {
+                    const response = await fetch(`/api/test-artifacts/${encodeURIComponent(reportName)}`);
+                    if (response.ok) {
+                        const artifacts = await response.json();
+                        this.showArtifactsModal(reportName, artifacts);
+                    } else {
+                        throw new Error('Failed to load artifacts');
+                    }
+                } catch (error) {
+                    console.error('Error loading artifacts:', error);
+                    this.showStatus(`Error loading artifacts: ${error.message}`, 'error');
+                }
+            }
+
+            showArtifactsModal(reportName, artifacts) {
+                // Create modal HTML
+                const modalHtml = `
+                    <div id="artifactsModal" style="
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                        background: rgba(0,0,0,0.8); z-index: 1000; display: flex; 
+                        align-items: center; justify-content: center; padding: 20px;
+                    ">
+                        <div style="
+                            background: white; border-radius: 12px; max-width: 90vw; 
+                            max-height: 90vh; overflow-y: auto; padding: 24px;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3>📸 Test Artifacts: ${reportName}</h3>
+                                <button onclick="document.getElementById('artifactsModal').remove()" 
+                                        style="background: #dc2626; color: white; border: none; 
+                                               border-radius: 6px; padding: 8px 12px; cursor: pointer;">✕ Close</button>
+                            </div>
+                            
+                            ${artifacts.screenshots.length > 0 ? `
+                                <div style="margin-bottom: 24px;">
+                                    <h4>📸 Screenshots (${artifacts.screenshots.length})</h4>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
+                                        ${artifacts.screenshots.map(screenshot => `
+                                            <div style="text-align: center; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                                                <img src="${screenshot.path}" alt="${screenshot.name}" 
+                                                     style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 8px;">
+                                                <p style="font-size: 12px; color: #6b7280; margin: 0;">${this.formatScreenshotType(screenshot.type)}</p>
+                                                <a href="${screenshot.path}" target="_blank" style="font-size: 12px; color: #4f46e5;">View Full Size</a>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : '<p>No screenshots found</p>'}
+                            
+                            ${artifacts.videos.length > 0 ? `
+                                <div>
+                                    <h4>🎥 Videos (${artifacts.videos.length})</h4>
+                                    <div style="margin-top: 12px;">
+                                        ${artifacts.videos.map(video => `
+                                            <div style="margin-bottom: 16px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                                <p><strong>${video.name}</strong> (${this.formatFileSize(video.size)})</p>
+                                                <video controls style="max-width: 100%; height: auto;">
+                                                    <source src="${video.path}" type="video/webm">
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                                <div style="margin-top: 8px;">
+                                                    <a href="${video.path}" download style="color: #4f46e5; text-decoration: none;">⬇️ Download Video</a>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : '<p>No videos found</p>'}
+                        </div>
+                    </div>
+                `;
+
+                // Add modal to page
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+
+            formatScreenshotType(type) {
+                const typeMap = {
+                    'initial': '🏁 Initial View',
+                    'scroll': '📜 Scroll Step',
+                    'debug': '🔍 Debug',
+                    'before_login': '🔐 Before Login',
+                    'after_login': '✅ After Login',
+                    'other': '📷 Other'
+                };
+                return typeMap[type] || '📷 Screenshot';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
         }
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The scrolling functionality provides automated testing of mobile scrolling performance on Safari iPhone 16, specifically designed for testing the Metricon dashboard application. It simulates real user scrolling behavior and generates detailed performance reports with visual documentation.
+The scrolling functionality provides automated testing of mobile scrolling performance on Safari iPhone 16, specifically designed for testing the Metricon dashboard application. It simulates real user scrolling behavior and generates detailed performance reports with visual documentation including screenshots and video recordings.
 
 ## Configuration
 
@@ -57,7 +57,7 @@ The tests simulate an iPhone 16 device with the following specifications:
    ```
 
 2. **Access the web interface**:
-   Open `http://localhost:3001` in your browser
+   Open `http://localhost:8899` in your browser
 
 3. **Configure URLs**:
    - Add the URLs you want to test in the "URLs to Test" section

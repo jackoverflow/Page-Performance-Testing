@@ -6,7 +6,7 @@ const { promisify } = require('util');
 const { runMetriconScrollingTest } = require('./run-metricon-scrolling');
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 8899;
 const execAsync = promisify(exec);
 
 // Middleware
@@ -14,6 +14,8 @@ app.use(express.json());
 app.use(express.static('.'));
 app.use('/safari-scrolling', express.static(path.join(__dirname, 'safari-scrolling')));
 app.use('/safari-reports', express.static(path.join(__dirname, 'safari-reports')));
+app.use('/test-results', express.static(path.join(__dirname, 'test-results')));
+app.use('/test-videos', express.static(path.join(__dirname, 'test-videos')));
 
 // Serve the dashboard
 app.get('/', (req, res) => {
@@ -273,6 +275,85 @@ app.post('/api/run-metricon-test', async (req, res) => {
     }
 });
 
+// API endpoint to get test artifacts (screenshots and videos)
+app.get('/api/test-artifacts/:reportName', (req, res) => {
+    const reportName = req.params.reportName;
+    const artifacts = {
+        screenshots: [],
+        videos: [],
+        reportPath: ''
+    };
+
+    try {
+        // Extract base name from report filename
+        const baseName = reportName.replace('.report.html', '').replace('_scrolling', '');
+        
+        // Check safari-scrolling directory for screenshots
+        const safariScrollingDir = path.join(__dirname, 'safari-scrolling');
+        if (fs.existsSync(safariScrollingDir)) {
+            const files = fs.readdirSync(safariScrollingDir);
+            
+            // Find related screenshots
+            const relatedScreenshots = files.filter(file => 
+                file.startsWith(baseName) && file.endsWith('.png')
+            );
+            
+            artifacts.screenshots = relatedScreenshots.map(file => ({
+                name: file,
+                path: `/safari-scrolling/${file}`,
+                type: file.includes('initial') ? 'initial' : 
+                      file.includes('scroll_') ? 'scroll' : 
+                      file.includes('debug') ? 'debug' :
+                      file.includes('before_submit') ? 'before_login' :
+                      file.includes('after_login') ? 'after_login' : 'other'
+            }));
+            
+            // Set report path
+            if (files.includes(reportName)) {
+                artifacts.reportPath = `/safari-scrolling/${reportName}`;
+            }
+        }
+
+        // Check test-results directory for videos
+        const testResultsDir = path.join(__dirname, 'test-results');
+        if (fs.existsSync(testResultsDir)) {
+            const findVideos = (dir) => {
+                const items = fs.readdirSync(dir, { withFileTypes: true });
+                let videos = [];
+                
+                for (const item of items) {
+                    const fullPath = path.join(dir, item.name);
+                    if (item.isDirectory()) {
+                        videos = videos.concat(findVideos(fullPath));
+                    } else if (item.name.endsWith('.webm') || item.name.endsWith('.mp4')) {
+                        const relativePath = path.relative(__dirname, fullPath).replace(/\\/g, '/');
+                        const stats = fs.statSync(fullPath);
+                        videos.push({
+                            name: item.name,
+                            path: `/${relativePath}`,
+                            size: stats.size,
+                            date: stats.mtime.toISOString()
+                        });
+                    }
+                }
+                return videos;
+            };
+            
+            // Get all videos and filter for recent ones related to this test
+            const allVideos = findVideos(testResultsDir);
+            console.log('Found all videos:', allVideos);
+            
+            // For now, include all videos (we can filter later if needed)
+            artifacts.videos = allVideos;
+        }
+
+        res.json(artifacts);
+    } catch (error) {
+        console.error('Error getting test artifacts:', error);
+        res.status(500).json({ error: 'Failed to get test artifacts' });
+    }
+});
+
 // Endpoint to fetch reports dynamically
 app.get('/api/reports', (req, res) => {
     const lighthouseDir = path.join(__dirname, 'lighthouse');
@@ -319,12 +400,47 @@ app.get('/api/reports', (req, res) => {
                             `https://${hostname}`;
                     }
 
+                    // Count related artifacts
+                    let screenshotCount = 0;
+                    let videoCount = 0;
+                    
+                    if (reportType === 'scrolling') {
+                        const baseName = file.replace('_scrolling.report.html', '');
+                        const dirFiles = fs.readdirSync(dir);
+                        screenshotCount = dirFiles.filter(f => f.startsWith(baseName) && f.endsWith('.png')).length;
+                        
+                        // Count videos in test-results directory
+                        const testResultsDir = path.join(__dirname, 'test-results');
+                        if (fs.existsSync(testResultsDir)) {
+                            const findVideoCount = (searchDir) => {
+                                let count = 0;
+                                try {
+                                    const items = fs.readdirSync(searchDir, { withFileTypes: true });
+                                    for (const item of items) {
+                                        const fullPath = path.join(searchDir, item.name);
+                                        if (item.isDirectory()) {
+                                            count += findVideoCount(fullPath);
+                                        } else if (item.name.endsWith('.webm') || item.name.endsWith('.mp4')) {
+                                            count++;
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Error counting videos:', error);
+                                }
+                                return count;
+                            };
+                            videoCount = findVideoCount(testResultsDir);
+                        }
+                    }
+
                     return {
                         name: file,
                         url: url,
                         date: stats.mtime.toISOString(),
                         path: `/${pathPrefix}/${file}`,
-                        type: reportType
+                        type: reportType,
+                        screenshotCount: screenshotCount,
+                        videoCount: videoCount
                     };
                 });
         } catch (error) {

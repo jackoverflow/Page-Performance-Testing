@@ -53,7 +53,7 @@ npm test
 ## Development Workflow
 
 1. Start dashboard: `npm run dashboard`
-2. Access web interface at `http://localhost:3001`
+2. Access web interface at `http://localhost:8899`
 3. Configure URLs through the dashboard
 4. Trigger tests via dashboard interface
 5. View generated reports in `lighthouse/` directory

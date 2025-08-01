@@ -34,7 +34,8 @@ export default defineConfig({
         ignoreHTTPSErrors: true,
         bypassCSP: true,
         locale: 'en-US',
-        geolocation: { latitude: 14.5995, longitude: 120.9842 }
+        geolocation: { latitude: 14.5995, longitude: 120.9842 },
+        video: 'on'
       }
     },
     {

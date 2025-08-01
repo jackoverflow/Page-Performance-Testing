@@ -14,7 +14,7 @@ Videos are **automatically generated** when you run the Metricon scrolling test.
 
 Videos are recorded in the following scenarios:
 
-1. **Dashboard Button**: When you press the 📱 **Run Safari iPhone 16 Scrolling Test** button in the dashboard (at `http://localhost:3001`)
+1. **Dashboard Button**: When you press the 📱 **Run Safari iPhone 16 Scrolling Test** button in the dashboard (at `http://localhost:8899`)
 2. **Command Line**: When you run the test via command line using the scripts provided
 3. **Batch File**: When you execute the `run-video-test.bat` file
 
@@ -31,7 +31,7 @@ Videos are recorded in the following scenarios:
    npm run dashboard
    ```
 
-2. Open your browser and navigate to: `http://localhost:3001`
+2. Open your browser and navigate to: `http://localhost:8899`
 
 3. Add at least one URL to test in the "URLs to Test" section (or use the default URL)
 

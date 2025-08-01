@@ -29,7 +29,7 @@ if not exist "node_modules\playwright\.local-browsers" (
 )
 
 echo 🎯 Starting dashboard server...
-echo 📊 Dashboard will be available at: http://localhost:3001
+echo 📊 Dashboard will be available at: http://localhost:8899
 echo.
 echo Press Ctrl+C to stop the server
 echo.
