@@ -85,10 +85,12 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Metricon dashboard URL detected, starting authentication flow...');
             
-            const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
-            const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
-            const EMAIL = 'pio@ypdigital.com.au';
-            const PASSWORD = 'YPD1g1t4l*';
+            // Get credentials from config
+            const scrollingConfig = config.scrollingConfig || {};
+            const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
+            const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+            const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
+            const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
             
             console.log(`Navigating to login page: ${LOGIN_URL}`);
             
@@ -137,9 +139,14 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             if (isLoginPage) {
               console.log('Login required, authenticating...');
               
+              // Get credentials from config
+              const scrollingConfig = config.scrollingConfig || {};
+              const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
+              const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
+              
               // Fill in login credentials
-              await page.fill('input[name="email"]', 'pio@ypdigital.com.au');
-              await page.fill('input[name="password"]', 'YPD1g1t4l*');
+              await page.fill('input[name="email"]', EMAIL);
+              await page.fill('input[name="password"]', PASSWORD);
               
               // Click submit and wait for navigation
               await page.click('button[type="submit"]');

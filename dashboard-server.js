@@ -102,10 +102,11 @@ app.post('/api/run-tests', async (req, res) => {
 // API endpoint to run Safari iPhone 16 scrolling tests
 app.post('/api/run-scrolling-tests', async (req, res) => {
     try {
-        const { urls, thresholds } = req.body;
+        const { urls, thresholds, scrollingConfig } = req.body;
 
         console.log('Received URLs for scrolling tests:', urls); // Debugging log
         console.log('Received thresholds for scrolling tests:', thresholds); // Debugging log
+        console.log('Received scrolling config:', scrollingConfig); // Debugging log
 
         if (!urls || urls.length === 0) {
             return res.status(400).json({ error: 'No URLs provided' });
@@ -118,12 +119,23 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             console.log(`Created safari-scrolling directory: ${scrollingReportsDir}`);
         }
 
-        // Ensure config file is created
+        // Ensure config file is created with scrolling configuration
         const configPath = path.join(__dirname, 'test-config.json');
         console.log('Creating test-config.json at:', configPath);
 
+        const configData = { 
+            urls, 
+            thresholds,
+            scrollingConfig: scrollingConfig || {
+                loginUrl: 'https://mymetricon-nextjs-dev.vercel.app/',
+                dashboardUrl: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662',
+                email: 'pio@ypdigital.com.au',
+                password: 'YPD1g1t4l*'
+            }
+        };
+
         try {
-            fs.writeFileSync(configPath, JSON.stringify({ urls, thresholds }, null, 2));
+            fs.writeFileSync(configPath, JSON.stringify(configData, null, 2));
             console.log('test-config.json content:', fs.readFileSync(configPath, 'utf8'));
         } catch (writeError) {
             console.error('Error writing test-config.json:', writeError);

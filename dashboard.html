@@ -410,6 +410,33 @@
                 </div>
             </div>
 
+            <div class="section">
+                <h2>📱 Scrolling Test Configuration</h2>
+                <div class="threshold-controls">
+                    <div class="threshold-group">
+                        <label for="loginUrl">Login URL</label>
+                        <input type="url" id="loginUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/" placeholder="https://example.com/login">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="dashboardUrl">Dashboard URL</label>
+                        <input type="url" id="dashboardUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/dashboard/752662" placeholder="https://example.com/dashboard">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="threshold-input" value="pio@ypdigital.com.au" placeholder="user@example.com">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="threshold-input" value="YPD1g1t4l*" placeholder="Enter password">
+                    </div>
+                </div>
+                <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+                    <p style="color: #92400e; font-size: 14px; margin: 0;">
+                        <strong>⚠️ Security Note:</strong> These credentials are used for automated testing. Ensure you're using test accounts with minimal permissions.
+                    </p>
+                </div>
+            </div>
+
             <div class="test-controls">
                 <button id="runTestsBtn" class="btn btn-success">
                     🧪 Run Performance Tests
@@ -502,6 +529,15 @@
                     performance: parseInt(document.getElementById('performanceThreshold').value),
                     accessibility: parseInt(document.getElementById('accessibilityThreshold').value),
                     seo: parseInt(document.getElementById('seoThreshold').value)
+                };
+            }
+
+            getScrollingConfig() {
+                return {
+                    loginUrl: document.getElementById('loginUrl').value.trim(),
+                    dashboardUrl: document.getElementById('dashboardUrl').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value.trim()
                 };
             }
 
@@ -612,6 +648,15 @@
                     this.showStatus('Please add at least one URL to test', 'error');
                     return;
                 }
+
+                // Get scrolling configuration
+                const scrollingConfig = this.getScrollingConfig();
+                
+                // Validate scrolling configuration
+                if (!scrollingConfig.loginUrl || !scrollingConfig.dashboardUrl || !scrollingConfig.email || !scrollingConfig.password) {
+                    this.showStatus('Please fill in all scrolling configuration fields (Login URL, Dashboard URL, Email, Password)', 'error');
+                    return;
+                }
                 
                 // Check if Metricon dashboard URL is included
                 const hasMetriconUrl = urls.some(url => url.includes('mymetricon-nextjs-dev.vercel.app/dashboard'));
@@ -635,7 +680,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ urls, thresholds })
+                        body: JSON.stringify({ urls, thresholds, scrollingConfig })
                     });
 
                     console.log('Scrolling test server response:', response);

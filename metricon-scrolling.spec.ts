@@ -11,11 +11,26 @@ const iPhone16 = {
     hasTouch: true
 };
 
-// Metricon specific credentials
-const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
-const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
-const EMAIL = 'pio@ypdigital.com.au';
-const PASSWORD = 'YPD1g1t4l*';
+// Read configuration from test-config.json
+const configPath = path.join(__dirname, 'test-config.json');
+let config = {};
+
+if (fs.existsSync(configPath)) {
+    try {
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        config = JSON.parse(configContent);
+        console.log('Loaded configuration:', config);
+    } catch (error) {
+        console.error('Error parsing test-config.json:', error);
+    }
+}
+
+// Get credentials from config or use defaults
+const scrollingConfig = config.scrollingConfig || {};
+const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
+const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
+const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
 
 test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
     test('Safari iPhone 16 scrolling test for Metricon Dashboard', async ({ page }) => {
