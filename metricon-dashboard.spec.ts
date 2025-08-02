@@ -108,7 +108,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
             const elements = document.querySelectorAll(selector);
             if (elements.length > 0) {
               // Click the first contract element
-              elements[0].click();
+              (elements[0] as HTMLElement).click();
               return true;
             }
           }
