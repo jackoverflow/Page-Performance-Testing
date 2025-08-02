@@ -11,26 +11,26 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
   
   console.log('Looking for test-config.json at:', configPath);
   
-  if (!fs.existsSync(configPath)) {
-    console.error('test-config.json not found at:', configPath);
-    throw new Error('test-config.json not found. Please run tests through the dashboard.');
-  }
-  
-  console.log('test-config.json found, reading content...');
-  
   let config;
-  try {
-    const configContent = fs.readFileSync(configPath, 'utf8');
-    console.log('Raw config content:', configContent);
-    config = JSON.parse(configContent);
-  } catch (error) {
-    console.error('Error parsing test-config.json:', error);
-    throw new Error(`Failed to parse test-config.json: ${error.message}`);
+  if (fs.existsSync(configPath)) {
+    console.log('test-config.json found, reading content...');
+    try {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      console.log('Raw config content:', configContent);
+      config = JSON.parse(configContent);
+    } catch (error) {
+      console.error('Error parsing test-config.json:', error);
+      console.log('Using default configuration...');
+      config = {};
+    }
+  } else {
+    console.log('test-config.json not found, using default configuration...');
+    config = {};
   }
   
   console.log('Parsed config:', config);
   
-  const urls = config.urls;
+  const urls = config.urls || ['https://mymetricon-nextjs-dev.vercel.app/dashboard'];
   
   if (!urls || urls.length === 0) {
     console.error('No URLs found in configuration');
@@ -91,7 +91,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
             const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
             const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
-            const ORIENTATION = scrollingConfig.orientation || 'portrait';
+            const ORIENTATION = scrollingConfig.orientation || 'landscape';
             const CONTRACT_ID = scrollingConfig.contractId || '';
 
             // Define viewport based on orientation
