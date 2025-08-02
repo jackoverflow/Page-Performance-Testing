@@ -72,7 +72,6 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
       const context = await browser.newContext({
         ...iPhone16,
-        viewport: VIEWPORT, // Override with orientation-specific viewport
         locale: 'en-US',
         geolocation: { latitude: 14.5995, longitude: 120.9842 }, // Manila, Philippines
       });
@@ -189,8 +188,25 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Final URL after authentication flow:', page.url());
             
-            // If we're on the select-contract page, we need to select a contract
-            if (page.url().includes('/dashboard/select-contract')) {
+            // Check if we need to navigate to specific dashboard URL with contract ID
+            const contractId = config.scrollingConfig?.contractId;
+            if (contractId && contractId.trim()) {
+              const targetDashboardUrl = `https://mymetricon-nextjs-dev.vercel.app/dashboard/${contractId.trim()}`;
+              console.log(`Contract ID provided: ${contractId}, navigating directly to: ${targetDashboardUrl}`);
+              
+              // Navigate directly to the dashboard with contract ID
+              await page.goto(targetDashboardUrl, {
+                waitUntil: 'domcontentloaded',
+                timeout: 30000
+              });
+              
+              console.log(`Successfully navigated to dashboard URL: ${page.url()}`);
+              
+              // Wait for page to stabilize
+              await page.waitForTimeout(3000);
+            }
+            // If we're on the select-contract page and no specific contract ID was provided, we need to select a contract
+            else if (page.url().includes('/dashboard/select-contract')) {
               console.log('On select-contract page, looking for contract to select...');
               
               // Wait for contract selection elements to load
@@ -206,18 +222,18 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
               console.log(`Contract selection screenshot saved to: ${contractSelectionScreenshot}`);
               
               // Try to find and click the contract
-              const contractFound = await page.evaluate((contractId) => {
-                console.log('Looking for contract with ID:', contractId);
+              const contractFound = await page.evaluate((contractIdParam) => {
+                console.log('Looking for contract with ID:', contractIdParam);
                 
                 // If we have a specific contract ID to look for
-                if (contractId) {
+                if (contractIdParam) {
                   // Try to find contract by ID using various selectors
                   const selectors = [
-                    `.contract-item[data-contract-id="${contractId}"]`, 
-                    `[data-testid="contract-item-${contractId}"]`,
-                    `[data-contract="${contractId}"]`,
-                    `[data-contract-id="${contractId}"]`,
-                    `a[href*="/dashboard/${contractId}"]`
+                    `.contract-item[data-contract-id="${contractIdParam}"]`, 
+                    `[data-testid="contract-item-${contractIdParam}"]`,
+                    `[data-contract="${contractIdParam}"]`,
+                    `[data-contract-id="${contractIdParam}"]`,
+                    `a[href*="/dashboard/${contractIdParam}"]`
                   ];
                   
                   // Try each selector
@@ -225,7 +241,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                     const element = document.querySelector(selector);
                     if (element) {
                       console.log('Found contract element with selector:', selector);
-                      element.click();
+                      (element as HTMLElement).click();
                       return true;
                     }
                   }
@@ -233,14 +249,14 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                   // If no exact match found, try to find by text content
                   const allPossibleElements = document.querySelectorAll('.contract-item, [data-testid="contract-item"], .contract-card, a[href*="/dashboard/"], button, [data-contract]');
                   for (const element of allPossibleElements) {
-                    if (element.textContent && element.textContent.includes(contractId)) {
+                    if (element.textContent && element.textContent.includes(contractIdParam)) {
                       console.log('Found contract by text content match');
-                      element.click();
+                      (element as HTMLElement).click();
                       return true;
                     }
                   }
                   
-                  console.log('Could not find contract with ID:', contractId);
+                  console.log('Could not find contract with ID:', contractIdParam);
                 }
                 
                 // Fallback to selecting first available contract
@@ -256,7 +272,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                   const elements = document.querySelectorAll(selector);
                   if (elements.length > 0) {
                     // Click the first contract element
-                    elements[0].click();
+                    (elements[0] as HTMLElement).click();
                     return true;
                   }
                 }
@@ -271,7 +287,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 }
                 
                 return false;
-              }, CONTRACT_ID);
+              }, contractId);
               
               if (contractFound) {
                 console.log('Contract selected, waiting for navigation...');
@@ -432,7 +448,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 <strong>Viewport:</strong> ${pageInfo.viewport?.width || 'N/A'}x${pageInfo.viewport?.height || 'N/A'}
             </div>
             <div class="info-item">
-                <strong>Orientation:</strong> ${ORIENTATION.charAt(0).toUpperCase() + ORIENTATION.slice(1)}
+                <strong>Orientation:</strong> ${config.scrollingConfig?.orientation?.charAt(0).toUpperCase() + config.scrollingConfig?.orientation?.slice(1) || 'Portrait'}
             </div>
             <div class="info-item">
                 <strong>Location:</strong> Manila, Philippines

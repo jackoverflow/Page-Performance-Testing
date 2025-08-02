@@ -121,12 +121,22 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         const configPath = path.join(__dirname, 'test-config.json');
         console.log('Creating test-config.json at:', configPath);
 
+        // Build dashboard URL based on contract ID
+        let dynamicDashboardUrl = scrollingConfig?.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
+        
+        // If contract ID is provided, navigate directly to that specific dashboard
+        if (scrollingConfig?.contractId && scrollingConfig.contractId.trim()) {
+            const baseUrl = 'https://mymetricon-nextjs-dev.vercel.app/dashboard';
+            dynamicDashboardUrl = `${baseUrl}/${scrollingConfig.contractId.trim()}`;
+            console.log(`Contract ID provided: ${scrollingConfig.contractId}, using direct dashboard URL: ${dynamicDashboardUrl}`);
+        }
+
         const configData = { 
             thresholds,
             scrollingConfig: {
                 ...(scrollingConfig || {}),
                 loginUrl: 'https://mymetricon-nextjs-dev.vercel.app/',
-                dashboardUrl: scrollingConfig?.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract',
+                dashboardUrl: dynamicDashboardUrl,
                 contractId: scrollingConfig?.contractId || '',
                 email: 'pio@ypdigital.com.au',
                 password: 'YPD1g1t4l*',
@@ -218,7 +228,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             success: true,
             reportCount: reportCount,
             message: `Safari iPhone 16 scrolling tests completed successfully`,
-            dashboardUrl: scrollingConfig.dashboardUrl,
+            dashboardUrl: dynamicDashboardUrl,
             contractId: scrollingConfig.contractId
         });
 
@@ -268,7 +278,7 @@ app.post('/api/run-metricon-test', async (req, res) => {
             success: true,
             reportCount: reportCount,
             message: `Metricon Dashboard test completed successfully`,
-            url: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662'
+            url: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/{contractId}'
         });
 
     } catch (error) {
@@ -396,7 +406,7 @@ app.get('/api/reports', (req, res) => {
                     } else if (reportType === 'metricon') {
                         // Metricon reports: mymetricon_nextjs_dev_dashboard_timestamp_scrolling.report.html
                         hostname = 'mymetricon-nextjs-dev';
-                        url = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+                        url = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/{contractId}';
                     } else {
                         // Lighthouse reports: hostname_timestamp.report.html
                         const parts = baseName.split('_');

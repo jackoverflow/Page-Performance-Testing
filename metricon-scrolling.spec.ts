@@ -25,8 +25,8 @@ if (fs.existsSync(configPath)) {
     }
 }
 
-// Get credentials from config or use defaults
-const scrollingConfig = config.scrollingConfig || {};
+// Get credentials from config or use defaults  
+const scrollingConfig = (config as any).scrollingConfig || {};
 const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
 const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
 const CONTRACT_ID = scrollingConfig.contractId || '';
@@ -131,8 +131,24 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
 
             console.log('Login submitted, current URL:', page.url());
             
-            // If we're on the select-contract page, we need to select a contract
-            if (page.url().includes('/dashboard/select-contract')) {
+            // Check if we need to navigate to specific dashboard URL with contract ID
+            if (CONTRACT_ID && CONTRACT_ID.trim()) {
+                const targetDashboardUrl = `https://mymetricon-nextjs-dev.vercel.app/dashboard/${CONTRACT_ID.trim()}`;
+                console.log(`Contract ID provided: ${CONTRACT_ID}, navigating directly to: ${targetDashboardUrl}`);
+                
+                // Navigate directly to the dashboard with contract ID
+                await page.goto(targetDashboardUrl, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30000
+                });
+                
+                console.log(`Successfully navigated to dashboard URL: ${page.url()}`);
+                
+                // Wait for page to stabilize
+                await page.waitForTimeout(3000);
+            }
+            // If we're on the select-contract page and no specific contract ID was provided, we need to select a contract
+            else if (page.url().includes('/dashboard/select-contract')) {
                 console.log('On select-contract page, looking for contract to select...');
                 
                 // Wait for contract selection elements to load
@@ -168,7 +184,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
                             for (const selector of selectors) {
                                 const element = document.querySelector(selector);
                                 if (element) {
-                                    element.click();
+                                    (element as HTMLElement).click();
                                     return true;
                                 }
                             }
@@ -177,7 +193,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
                             const elements = document.querySelectorAll('a, button, div');
                             for (const element of elements) {
                                 if (element.textContent && element.textContent.includes(contractId)) {
-                                    element.click();
+                                    (element as HTMLElement).click();
                                     return true;
                                 }
                             }
@@ -211,7 +227,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
                             const elements = document.querySelectorAll(selector);
                             if (elements.length > 0) {
                                 // Click the first contract element
-                                elements[0].click();
+                                (elements[0] as HTMLElement).click();
                                 return true;
                             }
                         }
