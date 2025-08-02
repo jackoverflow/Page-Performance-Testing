@@ -107,6 +107,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         console.log('Received URLs for scrolling tests:', urls); // Debugging log
         console.log('Received thresholds for scrolling tests:', thresholds); // Debugging log
         console.log('Received scrolling config:', scrollingConfig); // Debugging log
+        console.log('Orientation from config:', scrollingConfig?.orientation); // Debug orientation
 
         // URLs are not required for scrolling tests since Dashboard URL and Contract ID are used
 
@@ -140,13 +141,14 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
                 contractId: scrollingConfig?.contractId || '',
                 email: 'pio@ypdigital.com.au',
                 password: 'YPD1g1t4l*',
-                orientation: 'portrait'
+                orientation: scrollingConfig?.orientation || 'portrait'
             }
         };
 
         try {
             fs.writeFileSync(configPath, JSON.stringify(configData, null, 2));
-            console.log('test-config.json content:', fs.readFileSync(configPath, 'utf8'));
+            console.log('✅ Written test-config.json with orientation:', configData.scrollingConfig?.orientation);
+            console.log('Full config content:', JSON.stringify(configData, null, 2));
         } catch (writeError) {
             console.error('Error writing test-config.json:', writeError);
             return res.status(500).json({ error: 'Failed to create test-config.json', details: writeError.message });
@@ -162,7 +164,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         
         if (isMetriconUrl) {
             // Use specialized Metricon test
-            const command = `npx playwright test metricon-scrolling.spec.ts --project=safari-scrolling --reporter=list`;
+            const command = `npx playwright test metricon-scrolling.spec.ts --project=metricon-scrolling --reporter=list`;
             console.log('Executing Metricon command:', command);
             
             try {
