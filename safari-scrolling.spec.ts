@@ -45,7 +45,14 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
       // Get configuration that applies to all URLs
       const scrollingConfig = config.scrollingConfig || {};
-      const ORIENTATION = scrollingConfig.orientation || 'landscape';
+      const ORIENTATION = scrollingConfig.orientation || 'portrait';
+      const getViewportForOrientation = (orientation) => {
+        if (orientation === 'landscape') {
+          return { width: 844, height: 390 };
+        }
+        return { width: 390, height: 844 };
+      };
+      const VIEWPORT = getViewportForOrientation(ORIENTATION);
       
       // Validate URL and create a safe filename
       let urlObj;
@@ -76,6 +83,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
       const context = await browser.newContext({
         ...iPhone16,
+        viewport: VIEWPORT,
         locale: 'en-US',
         geolocation: { latitude: 14.5995, longitude: 120.9842 }, // Manila, Philippines
       });
