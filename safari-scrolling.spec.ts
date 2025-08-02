@@ -81,17 +81,19 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
               try {
           console.log(`Navigating to ${url} with Safari iPhone 16...`);
           
+          // Get configuration that applies to all URLs
+          const scrollingConfig = config.scrollingConfig || {};
+          const ORIENTATION = scrollingConfig.orientation || 'landscape';
+          
           // Special handling for Metricon dashboard URL
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Metricon dashboard URL detected, starting authentication flow...');
             
             // Get credentials from config
-            const scrollingConfig = config.scrollingConfig || {};
             const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
             const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
             const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
             const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
-            const ORIENTATION = scrollingConfig.orientation || 'landscape';
             const CONTRACT_ID = scrollingConfig.contractId || '';
 
             // Define viewport based on orientation
@@ -153,8 +155,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             if (isLoginPage) {
               console.log('Login required, authenticating...');
               
-              // Get credentials from config
-              const scrollingConfig = config.scrollingConfig || {};
+              // Get credentials from config (use existing scrollingConfig)
               const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
               const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
               
