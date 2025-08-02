@@ -657,11 +657,8 @@
                 
                 console.log('Collected URLs for scrolling test:', urls);
                 
-                if (urls.length === 0) {
-                    this.showStatus('Please add at least one URL to test', 'error');
-                    return;
-                }
-
+                // URLs are not required for scrolling tests since Dashboard URL and Contract ID are used
+                
                 // Get scrolling configuration
                 const scrollingConfig = this.getScrollingConfig();
                 

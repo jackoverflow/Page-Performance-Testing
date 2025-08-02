@@ -30,9 +30,7 @@ app.post('/api/run-tests', async (req, res) => {
         console.log('Received URLs:', urls); // Debugging log
         console.log('Received thresholds:', thresholds); // Debugging log
 
-        if (!urls || urls.length === 0) {
-            return res.status(400).json({ error: 'No URLs provided' });
-        }
+        // URLs are not required for scrolling tests since Dashboard URL and Contract ID are used
 
         console.log('Running performance tests for URLs:', urls);
         console.log('Using thresholds:', thresholds);
@@ -110,9 +108,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         console.log('Received thresholds for scrolling tests:', thresholds); // Debugging log
         console.log('Received scrolling config:', scrollingConfig); // Debugging log
 
-        if (!urls || urls.length === 0) {
-            return res.status(400).json({ error: 'No URLs provided' });
-        }
+        // URLs are not required for scrolling tests since Dashboard URL and Contract ID are used
 
         // Ensure safari-scrolling directory exists
         const scrollingReportsDir = path.join(__dirname, 'safari-scrolling');
@@ -150,8 +146,9 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             throw new Error('Failed to create test-config.json');
         }
 
-        // Check if this is a Metricon URL and use the appropriate test
-        const isMetriconUrl = urls.some(url => url.includes('mymetricon-nextjs-dev.vercel.app'));
+        // Use the Metricon test if the loginUrl or dashboardUrl contains 'mymetricon-nextjs-dev.vercel.app'
+        const isMetriconUrl = (scrollingConfig.loginUrl && scrollingConfig.loginUrl.includes('mymetricon-nextjs-dev.vercel.app')) || 
+                            (scrollingConfig.dashboardUrl && scrollingConfig.dashboardUrl.includes('mymetricon-nextjs-dev.vercel.app'));
         
         if (isMetriconUrl) {
             // Use specialized Metricon test
@@ -220,8 +217,9 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         res.json({
             success: true,
             reportCount: reportCount,
-            message: `Safari iPhone 16 scrolling tests completed successfully for ${urls.length} URLs`,
-            urls: urls
+            message: `Safari iPhone 16 scrolling tests completed successfully`,
+            dashboardUrl: scrollingConfig.dashboardUrl,
+            contractId: scrollingConfig.contractId
         });
 
     } catch (error) {
