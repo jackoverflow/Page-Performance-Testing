@@ -122,12 +122,14 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
         console.log('Creating test-config.json at:', configPath);
 
         const configData = { 
-            urls, 
             thresholds,
-            scrollingConfig: scrollingConfig || {
+            scrollingConfig: {
+                ...(scrollingConfig || {}),
+                dashboardUrl: scrollingConfig?.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract'
+            },
                 loginUrl: 'https://mymetricon-nextjs-dev.vercel.app/',
                 dashboardUrl: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract',
-                contractId: '',
+                contractId: scrollingConfig?.contractId || '',
                 email: 'pio@ypdigital.com.au',
                 password: 'YPD1g1t4l*',
                 orientation: 'portrait'
@@ -222,7 +224,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             contractId: scrollingConfig.contractId
         });
 
-    } catch (error) {
+    } catch (error), {
         console.error('Error in scrolling tests endpoint:', error);
         res.status(500).json({ error: 'Failed to run scrolling tests', details: error.message });
     }
