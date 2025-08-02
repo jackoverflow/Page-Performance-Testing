@@ -401,7 +401,8 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           timestamp: new Date().toISOString(),
           initialMetrics: initialMetrics,
           scrollSteps: scrollSteps,
-          totalScrollDistance: scrollSteps[scrollSteps.length - 1]?.scrollPosition || 0
+          totalScrollDistance: scrollSteps[scrollSteps.length - 1]?.scrollPosition || 0,
+          orientation: ORIENTATION
         };
         
         // Create HTML report
@@ -449,7 +450,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 <strong>Viewport:</strong> ${pageInfo.viewport?.width || 'N/A'}x${pageInfo.viewport?.height || 'N/A'}
             </div>
             <div class="info-item">
-                <strong>Orientation:</strong> ${(scrollingConfig.orientation || 'landscape').charAt(0).toUpperCase() + (scrollingConfig.orientation || 'landscape').slice(1)}
+                <strong>Orientation:</strong> ${pageInfo.orientation.charAt(0).toUpperCase() + pageInfo.orientation.slice(1)}
             </div>
             <div class="info-item">
                 <strong>Location:</strong> Manila, Philippines
