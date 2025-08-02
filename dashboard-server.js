@@ -130,9 +130,10 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             thresholds,
             scrollingConfig: scrollingConfig || {
                 loginUrl: 'https://mymetricon-nextjs-dev.vercel.app/',
-                dashboardUrl: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662',
+                dashboardUrl: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract',
                 email: 'pio@ypdigital.com.au',
-                password: 'YPD1g1t4l*'
+                password: 'YPD1g1t4l*',
+                orientation: 'portrait'
             }
         };
 
@@ -545,4 +546,4 @@ server.on('error', (err) => {
     }
 });
 
-module.exports = app; 
+module.exports = app;

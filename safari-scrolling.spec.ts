@@ -72,6 +72,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
       const context = await browser.newContext({
         ...iPhone16,
+        viewport: VIEWPORT, // Override with orientation-specific viewport
         locale: 'en-US',
         geolocation: { latitude: 14.5995, longitude: 120.9842 }, // Manila, Philippines
       });
@@ -88,9 +89,20 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             // Get credentials from config
             const scrollingConfig = config.scrollingConfig || {};
             const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
-            const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+            const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
             const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
             const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
+            const ORIENTATION = scrollingConfig.orientation || 'portrait';
+
+            // Define viewport based on orientation
+            const getViewportForOrientation = (orientation: string) => {
+                if (orientation === 'landscape') {
+                    return { width: 844, height: 390 }; // Landscape iPhone 16
+                }
+                return { width: 390, height: 844 }; // Portrait iPhone 16 (default)
+            };
+
+            const VIEWPORT = getViewportForOrientation(ORIENTATION);
             
             console.log(`Navigating to login page: ${LOGIN_URL}`);
             
@@ -176,15 +188,60 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
             console.log('Final URL after authentication flow:', page.url());
             
-            // Verify we're on the dashboard page
-            if (!page.url().includes('/dashboard/752662')) {
-              console.log('Not on dashboard page, forcing final navigation...');
-              await page.goto('https://mymetricon-nextjs-dev.vercel.app/dashboard/752662', {
-                waitUntil: 'domcontentloaded',
-                timeout: 30000
+            // If we're on the select-contract page, we need to select a contract
+            if (page.url().includes('/dashboard/select-contract')) {
+              console.log('On select-contract page, looking for contract to select...');
+              
+              // Wait for contract selection elements to load
+              await page.waitForSelector('.contract-item, [data-testid="contract-item"], .contract-card', { timeout: 10000 })
+                .catch(e => console.log('Contract selection elements not found with standard selectors, will try alternative approach'));
+              
+              // Take a screenshot of the contract selection page
+              const contractSelectionScreenshot = path.join(safariScrollingDir, `${urlSlug}_${timestamp}_contract_selection.png`);
+              await page.screenshot({
+                path: contractSelectionScreenshot,
+                fullPage: false
               });
-              await page.waitForTimeout(3000);
-              console.log('Final navigation complete, URL:', page.url());
+              console.log(`Contract selection screenshot saved to: ${contractSelectionScreenshot}`);
+              
+              // Try to find and click the first contract
+              const contractFound = await page.evaluate(() => {
+                // Try various selectors that might contain contract IDs
+                const selectors = [
+                  '.contract-item', '[data-testid="contract-item"]', '.contract-card',
+                  'a[href*="/dashboard/"]', 'button[data-contract-id]', '[data-contract]'
+                ];
+                
+                for (const selector of selectors) {
+                  const elements = document.querySelectorAll(selector);
+                  if (elements.length > 0) {
+                    // Click the first contract element
+                    elements[0].click();
+                    return true;
+                  }
+                }
+                
+                // If no selectors worked, try to find any element with href containing /dashboard/
+                const links = Array.from(document.querySelectorAll('a'));
+                const dashboardLink = links.find(link => link.href && link.href.includes('/dashboard/') && !link.href.includes('/select-contract'));
+                
+                if (dashboardLink) {
+                  dashboardLink.click();
+                  return true;
+                }
+                
+                return false;
+              });
+              
+              if (contractFound) {
+                console.log('Contract selected, waiting for navigation...');
+                // Wait for navigation after contract selection
+                await page.waitForNavigation({ timeout: 10000 })
+                  .catch(e => console.log('Navigation timeout after contract selection, continuing anyway'));
+                console.log('After contract selection, URL:', page.url());
+              } else {
+                console.log('Could not find a contract to select automatically');
+              }
             }
             
             // Get page info for verification
@@ -335,6 +392,9 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 <strong>Viewport:</strong> ${pageInfo.viewport?.width || 'N/A'}x${pageInfo.viewport?.height || 'N/A'}
             </div>
             <div class="info-item">
+                <strong>Orientation:</strong> ${ORIENTATION.charAt(0).toUpperCase() + ORIENTATION.slice(1)}
+            </div>
+            <div class="info-item">
                 <strong>Location:</strong> Manila, Philippines
             </div>
         </div>
@@ -410,4 +470,4 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       }
     });
   });
-}); 
+});

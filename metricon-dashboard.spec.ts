@@ -7,7 +7,7 @@ const iPhone16 = devices['iPhone 16'];
 
 // Metricon specific credentials
 const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
-const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
 const EMAIL = 'pio@ypdigital.com.au';
 const PASSWORD = 'YPD1g1t4l*';
 
@@ -68,7 +68,7 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       console.log('Login submitted, current URL:', page.url());
 
       // If not automatically redirected to dashboard, navigate there directly
-      if (!page.url().includes('/dashboard/752662')) {
+      if (!page.url().includes('/dashboard/select-contract')) {
         console.log('Navigating directly to dashboard URL');
         await page.goto(DASHBOARD_URL, {
           waitUntil: 'domcontentloaded',
@@ -79,6 +79,62 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
       // Wait for dashboard page to load
       await page.waitForLoadState('domcontentloaded');
       console.log('Dashboard page loaded, URL:', page.url());
+      
+      // If we're on the select-contract page, we need to select a contract and navigate to its dashboard
+      if (page.url().includes('/dashboard/select-contract')) {
+        console.log('On select-contract page, looking for contract to select...');
+        
+        // Wait for contract selection elements to load
+        await page.waitForSelector('.contract-item, [data-testid="contract-item"], .contract-card', { timeout: 10000 })
+          .catch(e => console.log('Contract selection elements not found with standard selectors, will try alternative approach'));
+        
+        // Take a screenshot of the contract selection page
+        const contractSelectionScreenshot = path.join(safariReportsDir, `${urlSlug}_${timestamp}_contract_selection.png`);
+        await page.screenshot({
+          path: contractSelectionScreenshot,
+          fullPage: false
+        });
+        console.log(`Contract selection screenshot saved to: ${contractSelectionScreenshot}`);
+        
+        // Try to find and click the first contract
+        const contractFound = await page.evaluate(() => {
+          // Try various selectors that might contain contract IDs
+          const selectors = [
+            '.contract-item', '[data-testid="contract-item"]', '.contract-card',
+            'a[href*="/dashboard/"]', 'button[data-contract-id]', '[data-contract]'
+          ];
+          
+          for (const selector of selectors) {
+            const elements = document.querySelectorAll(selector);
+            if (elements.length > 0) {
+              // Click the first contract element
+              elements[0].click();
+              return true;
+            }
+          }
+          
+          // If no selectors worked, try to find any element with href containing /dashboard/
+          const links = Array.from(document.querySelectorAll('a'));
+          const dashboardLink = links.find(link => link.href && link.href.includes('/dashboard/') && !link.href.includes('/select-contract'));
+          
+          if (dashboardLink) {
+            dashboardLink.click();
+            return true;
+          }
+          
+          return false;
+        });
+        
+        if (contractFound) {
+          console.log('Contract selected, waiting for navigation...');
+          // Wait for navigation after contract selection
+          await page.waitForNavigation({ timeout: 10000 })
+            .catch(e => console.log('Navigation timeout after contract selection, continuing anyway'));
+          console.log('After contract selection, URL:', page.url());
+        } else {
+          console.log('Could not find a contract to select automatically');
+        }
+      }
 
       // Take initial screenshot
       const initialScreenshot = path.join(safariReportsDir, `${urlSlug}_${timestamp}_initial.png`);

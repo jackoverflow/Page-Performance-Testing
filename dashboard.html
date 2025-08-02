@@ -419,7 +419,7 @@
                     </div>
                     <div class="threshold-group">
                         <label for="dashboardUrl">Dashboard URL</label>
-                        <input type="url" id="dashboardUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/dashboard/752662" placeholder="https://example.com/dashboard">
+                        <input type="url" id="dashboardUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract" placeholder="https://example.com/dashboard">
                     </div>
                     <div class="threshold-group">
                         <label for="email">Email</label>
@@ -428,6 +428,13 @@
                     <div class="threshold-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" class="threshold-input" value="YPD1g1t4l*" placeholder="Enter password">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="orientation">Device Orientation</label>
+                        <select id="orientation" class="threshold-input">
+                            <option value="portrait">📱 Portrait (390x844)</option>
+                            <option value="landscape">📱 Landscape (844x390)</option>
+                        </select>
                     </div>
                 </div>
                 <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
@@ -442,7 +449,7 @@
                     🧪 Run Performance Tests
                 </button>
                 <button id="runScrollTestBtn" class="btn btn-primary" style="margin-left: 12px;">
-                    📱 Run Safari iPhone 16 Scrolling Test
+                    📱 Run iPhone 16 Scrolling Test
                 </button>
                 <button id="runMetriconBtn" class="btn btn-primary" style="margin-top: 12px; background: #f59e0b;">
                     🏠 Run Metricon Dashboard Test
@@ -537,7 +544,8 @@
                     loginUrl: document.getElementById('loginUrl').value.trim(),
                     dashboardUrl: document.getElementById('dashboardUrl').value.trim(),
                     email: document.getElementById('email').value.trim(),
-                    password: document.getElementById('password').value.trim()
+                    password: document.getElementById('password').value.trim(),
+                    orientation: document.getElementById('orientation').value
                 };
             }
 
@@ -653,8 +661,8 @@
                 const scrollingConfig = this.getScrollingConfig();
                 
                 // Validate scrolling configuration
-                if (!scrollingConfig.loginUrl || !scrollingConfig.dashboardUrl || !scrollingConfig.email || !scrollingConfig.password) {
-                    this.showStatus('Please fill in all scrolling configuration fields (Login URL, Dashboard URL, Email, Password)', 'error');
+                if (!scrollingConfig.loginUrl || !scrollingConfig.dashboardUrl || !scrollingConfig.email || !scrollingConfig.password || !scrollingConfig.orientation) {
+                    this.showStatus('Please fill in all scrolling configuration fields (Login URL, Dashboard URL, Email, Password, Orientation)', 'error');
                     return;
                 }
                 
@@ -701,7 +709,7 @@
                     // Stop the timer when tests are complete (success or error)
                     this.stopTimer();
                     this.runScrollTestBtn.disabled = false;
-                    this.runScrollTestBtn.textContent = '📱 Run Safari iPhone 16 Scrolling Test';
+                    this.runScrollTestBtn.textContent = '📱 Run iPhone 16 Scrolling Test';
                 }
             }
             
@@ -911,4 +919,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

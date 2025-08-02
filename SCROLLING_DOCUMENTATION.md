@@ -18,7 +18,7 @@ The system now supports dynamic configuration through the web dashboard interfac
 **Default Configuration** (if not specified):
 ```typescript
 const LOGIN_URL = 'https://mymetricon-nextjs-dev.vercel.app/';
-const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/752662';
+const DASHBOARD_URL = 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
 const EMAIL = 'pio@ypdigital.com.au';
 const PASSWORD = 'YPD1g1t4l*';
 ```
@@ -27,9 +27,17 @@ const PASSWORD = 'YPD1g1t4l*';
 
 ### Device Configuration
 
-The tests simulate an iPhone 16 device with the following specifications:
+The tests simulate an iPhone 16 device with configurable orientation:
 
+#### Portrait Mode (Default)
 - **Viewport**: 390x844 pixels
+- **Device Scale Factor**: 3x (Retina display)
+- **User Agent**: iPhone iOS 16.0 Safari
+- **Location**: Manila, Philippines (14.5995°N, 120.9842°E)
+- **Browser**: Safari (WebKit engine)
+
+#### Landscape Mode
+- **Viewport**: 844x390 pixels
 - **Device Scale Factor**: 3x (Retina display)
 - **User Agent**: iPhone iOS 16.0 Safari
 - **Location**: Manila, Philippines (14.5995°N, 120.9842°E)
@@ -67,6 +75,7 @@ The tests simulate an iPhone 16 device with the following specifications:
    - **Dashboard URL**: Enter the target page URL after login
    - **Email**: Enter the login email address
    - **Password**: Enter the login password
+   - **Device Orientation**: Choose between Portrait (390x844) or Landscape (844x390)
 
 5. **Run tests**:
    - Click "📱 Run Safari iPhone 16 Scrolling Test" button
@@ -118,7 +127,8 @@ The authentication configuration is stored in `test-config.json` during test exe
     "loginUrl": "https://example.com/login",
     "dashboardUrl": "https://example.com/dashboard",
     "email": "user@example.com",
-    "password": "password123"
+    "password": "password123",
+    "orientation": "portrait"
   }
 }
 ```
@@ -222,6 +232,20 @@ Step 3: Scrolled to 1688px in 800ms (reached bottom)
 - **Timestamps**: `YYYY-MM-DD_HH-MM-SS` format
 - **Hostnames**: Sanitized (special characters replaced with underscores)
 
+## Orientation Options
+
+### Portrait Mode (390x844) - Default
+- **Best for**: Mobile-first designs, vertical content layouts
+- **Use case**: Testing how users scroll through content on mobile devices in normal holding position
+- **Viewport**: 390 pixels wide × 844 pixels tall
+- **Scroll behavior**: Vertical scrolling with more content visible per scroll step
+
+### Landscape Mode (844x390)  
+- **Best for**: Horizontal layouts, dashboard interfaces, media content
+- **Use case**: Testing how content adapts when device is rotated horizontally
+- **Viewport**: 844 pixels wide × 390 pixels tall
+- **Scroll behavior**: Vertical scrolling with wider content area, less vertical space
+
 ## Configuration Options
 
 ### Playwright Config Settings
@@ -280,11 +304,14 @@ Navigating to login page: https://mymetricon-nextjs-dev.vercel.app/
 Login form found, authenticating...
 Email filled correctly: true
 Password filled correctly: true
-Login submitted, current URL: https://mymetricon-nextjs-dev.vercel.app/dashboard/752662
+Login submitted, current URL: https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract
+On select-contract page, looking for contract to select...
+Contract selected, waiting for navigation...
+After contract selection, URL: https://mymetricon-nextjs-dev.vercel.app/dashboard/123456
 Reached bottom of page at scroll step 3
 Safari iPhone 16 scrolling test completed for Metricon Dashboard
 Report saved to: /path/to/safari-scrolling/report.html
-Screenshots saved: 4 images
+Screenshots saved: 5 images
 ```
 
 ## Security Considerations
