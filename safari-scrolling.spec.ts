@@ -43,6 +43,10 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
     test(`Safari iPhone 16 scrolling test for ${url}`, async () => {
       console.log(`Starting Safari iPhone 16 scrolling test for: ${url}`);
       
+      // Get configuration that applies to all URLs
+      const scrollingConfig = config.scrollingConfig || {};
+      const ORIENTATION = scrollingConfig.orientation || 'landscape';
+      
       // Validate URL and create a safe filename
       let urlObj;
       try {
@@ -80,10 +84,6 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
       
               try {
           console.log(`Navigating to ${url} with Safari iPhone 16...`);
-          
-          // Get configuration that applies to all URLs
-          const scrollingConfig = config.scrollingConfig || {};
-          const ORIENTATION = scrollingConfig.orientation || 'landscape';
           
           // Special handling for Metricon dashboard URL
           if (url.includes('mymetricon-nextjs-dev.vercel.app/dashboard')) {
