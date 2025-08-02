@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Speed Testing Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}.container{max-width:800px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.1);overflow:hidden}.header{background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#fff;padding:32px;text-align:center}.header h1{font-size:2.5rem;font-weight:700;margin-bottom:8px}.header p{font-size:1.1rem;opacity:.9}.content{padding:32px}.section{margin-bottom:32px}.section h2{color:#374151;font-size:1.5rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}.url-inputs{space-y:12px}.url-input-group{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:16px;background:#f8fafc;border-radius:12px;border:2px solid transparent;transition:all .2s ease}.url-input-group:hover{background:#f1f5f9;border-color:#e2e8f0}.url-input{flex:1;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:16px;transition:all .2s ease;background:#fff}.url-input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}.btn{padding:12px 24px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s ease;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669;transform:translateY(-1px)}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb;transform:translateY(-1px)}.btn-danger{background:#ef4444;color:#fff;padding:8px 12px;font-size:14px}.btn-danger:hover{background:#dc2626}.threshold-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.threshold-group{display:flex;flex-direction:column;gap:6px}.threshold-group label{font-weight:600;color:#374151;font-size:14px}.threshold-input{padding:10px 12px;border:2px solid #e2e8f0;border-radius:6px;font-size:14px;transition:all .2s ease}.threshold-input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}.test-controls{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:24px 0}.status{margin:16px 0;padding:16px;border-radius:8px;font-weight:600;text-align:center;transition:all .3s ease;opacity:0;transform:translateY(-10px)}.status.show{opacity:1;transform:translateY(0)}.status.success{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}.status.error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}.status.info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}.timer{display:none;margin:16px 0;padding:16px;background:#f3f4f6;border-radius:8px;text-align:center}.timer.show{display:block}.timer-label{font-weight:600;color:#374151;display:block;margin-bottom:8px}.timer-value{font-size:2rem;font-weight:700;color:#4f46e5}.reports-section{margin-top:32px}.reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px}.report-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;transition:all .2s ease;position:relative}.report-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(-2px)}.report-title{font-weight:600;color:#374151;margin-bottom:8px;font-size:1.1rem}.report-info{color:#6b7280;font-size:14px;margin-bottom:12px}.report-actions{display:flex;gap:8px;flex-wrap:wrap}.loading{display:inline-block;width:20px;height:20px;border:2px solid #f3f3f3;border-top:2px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}@media (max-width:768px){.container{margin:10px;border-radius:12px}.header{padding:24px 20px}.content{padding:20px}.threshold-controls{grid-template-columns:1fr}.test-controls{flex-direction:column;align-items:center}.btn{width:100%;justify-content:center}.reports-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Page Speed Testing Dashboard</h1>
+            <p>Optimized Performance Testing with Playwright and Lighthouse</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>🌐 URL Management</h2>
+                <div id="urlInputs" class="url-inputs">
+                    <!-- URL inputs will be added here -->
+                </div>
+                <button id="addUrlBtn" class="btn btn-primary" style="margin-top: 16px;">
+                    ➕ Add URL
+                </button>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ Performance Thresholds</h2>
+                <div class="threshold-controls">
+                    <div class="threshold-group">
+                        <label for="performanceThreshold">Performance Threshold</label>
+                        <input type="number" id="performanceThreshold" class="threshold-input" value="75" min="0" max="100">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="accessibilityThreshold">Accessibility Threshold</label>
+                        <input type="number" id="accessibilityThreshold" class="threshold-input" value="90" min="0" max="100">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="seoThreshold">SEO Threshold</label>
+                        <input type="number" id="seoThreshold" class="threshold-input" value="85" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📱 Scrolling Test Configuration</h2>
+                <div class="threshold-controls">
+                    <div class="threshold-group">
+                        <label for="loginUrl">Login URL</label>
+                        <input type="url" id="loginUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/" placeholder="https://example.com/login">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="dashboardUrl">Dashboard URL</label>
+                        <input type="url" id="dashboardUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract" placeholder="https://example.com/dashboard">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="contractId">Contract ID</label>
+                        <input type="text" id="contractId" class="threshold-input" value="" placeholder="e.g. 752662">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="threshold-input" value="pio@ypdigital.com.au" placeholder="user@example.com">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="threshold-input" value="YPD1g1t4l*" placeholder="Enter password">
+                    </div>
+                    <div class="threshold-group">
+                        <label for="orientation">Device Orientation</label>
+                        <select id="orientation" class="threshold-input">
+                            <option value="portrait">📱 Portrait (390x844)</option>
+                            <option value="landscape">📱 Landscape (844x390)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+                    <p style="color: #92400e; font-size: 14px; margin: 0;">
+                        <strong>⚠️ Security Note:</strong> These credentials are used for automated testing. Ensure you're using test accounts with minimal permissions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="test-controls">
+                <button id="runTestsBtn" class="btn btn-success">
+                    🧪 Run Performance Tests
+                </button>
+                <button id="runScrollTestBtn" class="btn btn-primary" style="margin-left: 12px;">
+                    📱 Run iPhone 16 Scrolling Test
+                </button>
+                <button id="runMetriconBtn" class="btn btn-primary" style="margin-top: 12px; background: #f59e0b;">
+                    🏠 Run Metricon Dashboard Test
+                </button>
+            </div>
+
+            <div id="status" class="status"></div>
+            <div id="timer" class="timer">
+                <span class="timer-label">⏱️ Timer</span>
+                <div class="timer-value"><span id="time">0</span>s</div>
+            </div>
+
+            <div class="reports-section">
+                <h2>📊 Recent Reports</h2>
+                <div id="reportsGrid" class="reports-grid">
+                    <!-- Reports will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Optimized Dashboard Class with performance improvements
+        class PageSpeedDashboard {
+            constructor() {
+                this.urlInputs = document.getElementById('urlInputs');
+                this.addUrlBtn = document.getElementById('addUrlBtn');
+                this.runTestsBtn = document.getElementById('runTestsBtn');
+                this.runScrollTestBtn = document.getElementById('runScrollTestBtn');
+                this.runMetriconBtn = document.getElementById('runMetriconBtn');
+                this.status = document.getElementById('status');
+                this.reportsGrid = document.getElementById('reportsGrid');
+                this.timerElement = document.getElementById('time');
+                this.timerInterval = null;
+                this.startTime = null;
+                
+                // Performance optimizations
+                this.debounceTimers = new Map();
+                this.cache = new Map();
+                
+                this.init();
+            }
+
+            init() {
+                this.addUrlInput('');
+                this.addEventListeners();
+                this.loadReports();
+            }
+
+            // Debounced function for performance
+            debounce(func, delay, key) {
+                if (this.debounceTimers.has(key)) {
+                    clearTimeout(this.debounceTimers.get(key));
+                }
+                
+                const timer = setTimeout(() => {
+                    func();
+                    this.debounceTimers.delete(key);
+                }, delay);
+                
+                this.debounceTimers.set(key, timer);
+            }
+
+            addEventListeners() {
+                this.addUrlBtn.addEventListener('click', () => this.addUrlInput(''));
+                this.runTestsBtn.addEventListener('click', () => this.runTests());
+                this.runScrollTestBtn.addEventListener('click', () => this.runScrollTest());
+                this.runMetriconBtn.addEventListener('click', () => this.runMetriconTest());
+            }
+
+            addUrlInput(value = '') {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'url-input-group';
+                
+                inputGroup.innerHTML = `
+                    <input type="url" class="url-input" placeholder="https://example.com" value="${value}">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">🗑️ Remove</button>
+                `;
+                
+                this.urlInputs.appendChild(inputGroup);
+            }
+
+            getUrls() {
+                const inputs = this.urlInputs.querySelectorAll('.url-input');
+                return Array.from(inputs)
+                    .map(input => input.value.trim())
+                    .filter(url => url !== '');
+            }
+
+            getThresholds() {
+                return {
+                    performance: parseInt(document.getElementById('performanceThreshold').value) || 75,
+                    accessibility: parseInt(document.getElementById('accessibilityThreshold').value) || 90,
+                    seo: parseInt(document.getElementById('seoThreshold').value) || 85
+                };
+            }
+
+            getScrollTestConfig() {
+                return {
+                    loginUrl: document.getElementById('loginUrl').value.trim(),
+                    dashboardUrl: document.getElementById('dashboardUrl').value.trim(),
+                    contractId: document.getElementById('contractId').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value.trim(),
+                    orientation: document.getElementById('orientation').value
+                };
+            }
+
+            showStatus(message, type = 'info') {
+                this.status.textContent = message;
+                this.status.className = `status ${type} show`;
+                
+                if (type === 'success' || type === 'error') {
+                    setTimeout(() => {
+                        this.status.classList.remove('show');
+                    }, 5000);
+                }
+            }
+
+            startTimer() {
+                this.startTime = Date.now();
+                this.timerElement.textContent = '0';
+                document.getElementById('timer').classList.add('show');
+                
+                this.timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    this.timerElement.textContent = elapsed;
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                document.getElementById('timer').classList.remove('show');
+            }
+
+            async runTests() {
+                const urls = this.getUrls();
+                if (urls.length === 0) {
+                    this.showStatus('Please add at least one URL', 'error');
+                    return;
+                }
+
+                const thresholds = this.getThresholds();
+                
+                this.runTestsBtn.disabled = true;
+                this.runTestsBtn.innerHTML = '<span class="loading"></span> Running Tests...';
+                this.showStatus(`Starting performance tests for ${urls.length} URL(s)...`, 'info');
+                this.startTimer();
+
+                try {
+                    const response = await fetch('/api/run-tests', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ urls, thresholds })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showStatus(`✅ Tests completed! Generated ${result.reportCount} reports`, 'success');
+                        this.loadReports();
+                    } else {
+                        throw new Error(result.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    this.showStatus(`❌ Error: ${error.message}`, 'error');
+                } finally {
+                    this.runTestsBtn.disabled = false;
+                    this.runTestsBtn.innerHTML = '🧪 Run Performance Tests';
+                    this.stopTimer();
+                }
+            }
+
+            async runScrollTest() {
+                const config = this.getScrollTestConfig();
+                
+                if (!config.contractId) {
+                    this.showStatus('Please enter a Contract ID for the scrolling test', 'error');
+                    return;
+                }
+
+                this.runScrollTestBtn.disabled = true;
+                this.runScrollTestBtn.innerHTML = '<span class="loading"></span> Running Scroll Test...';
+                this.showStatus('Starting Safari iPhone 16 scrolling test...', 'info');
+                this.startTimer();
+
+                try {
+                    const response = await fetch('/api/run-scroll-test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(config)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showStatus('✅ Safari scrolling test completed successfully!', 'success');
+                        this.loadReports();
+                    } else {
+                        throw new Error(result.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    this.showStatus(`❌ Error: ${error.message}`, 'error');
+                } finally {
+                    this.runScrollTestBtn.disabled = false;
+                    this.runScrollTestBtn.innerHTML = '📱 Run iPhone 16 Scrolling Test';
+                    this.stopTimer();
+                }
+            }
+
+            async runMetriconTest() {
+                const config = this.getScrollTestConfig();
+                
+                if (!config.contractId) {
+                    this.showStatus('Please enter a Contract ID for the Metricon test', 'error');
+                    return;
+                }
+
+                this.runMetriconBtn.disabled = true;
+                this.runMetriconBtn.innerHTML = '<span class="loading"></span> Running Metricon Test...';
+                this.showStatus('Starting Metricon Dashboard test...', 'info');
+                this.startTimer();
+
+                try {
+                    const response = await fetch('/api/run-metricon-test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(config)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showStatus('✅ Metricon Dashboard test completed successfully!', 'success');
+                        this.loadReports();
+                    } else {
+                        throw new Error(result.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    this.showStatus(`❌ Error: ${error.message}`, 'error');
+                } finally {
+                    this.runMetriconBtn.disabled = false;
+                    this.runMetriconBtn.innerHTML = '🏠 Run Metricon Dashboard Test';
+                    this.stopTimer();
+                }
+            }
+
+            async loadReports() {
+                const cacheKey = 'reports';
+                const cachedData = this.cache.get(cacheKey);
+                const now = Date.now();
+                
+                // Cache for 30 seconds
+                if (cachedData && (now - cachedData.timestamp) < 30000) {
+                    this.displayReports(cachedData.data);
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/reports');
+                    if (response.ok) {
+                        const reports = await response.json();
+                        this.cache.set(cacheKey, { data: reports, timestamp: now });
+                        this.displayReports(reports);
+                    }
+                } catch (error) {
+                    console.error('Error loading reports:', error);
+                }
+            }
+
+            displayReports(reports) {
+                if (!reports || reports.length === 0) {
+                    this.reportsGrid.innerHTML = '<p style="text-align: center; color: #6b7280; grid-column: 1/-1;">No reports found. Run some tests to see results here.</p>';
+                    return;
+                }
+
+                this.reportsGrid.innerHTML = reports.map(report => `
+                    <div class="report-card">
+                        <div class="report-title">${report.name}</div>
+                        <div class="report-info">
+                            ${report.date} • ${report.size}
+                        </div>
+                        <div class="report-actions">
+                            <a href="${report.path}" target="_blank" class="btn btn-primary">📊 View Report</a>
+                            ${report.hasArtifacts ? `<button onclick="dashboard.viewArtifacts('${report.name}')" class="btn btn-primary">📸 View Artifacts</button>` : ''}
+                            <button onclick="dashboard.deleteReport('${report.filename}')" class="btn btn-danger">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async deleteReport(filename) {
+                if (!confirm(`Are you sure you want to delete "${filename}"?`)) return;
+
+                try {
+                    const response = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        this.showStatus(`Report "${filename}" deleted successfully`, 'success');
+                        this.cache.delete('reports'); // Clear cache
+                        this.loadReports();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to delete report');
+                    }
+                } catch (error) {
+                    this.showStatus(`Error deleting report: ${error.message}`, 'error');
+                }
+            }
+
+            async viewArtifacts(reportName) {
+                try {
+                    const response = await fetch(`/api/test-artifacts/${encodeURIComponent(reportName)}`);
+                    if (response.ok) {
+                        const artifacts = await response.json();
+                        this.showArtifactsModal(reportName, artifacts);
+                    } else {
+                        throw new Error('Failed to load artifacts');
+                    }
+                } catch (error) {
+                    this.showStatus(`Error loading artifacts: ${error.message}`, 'error');
+                }
+            }
+
+            showArtifactsModal(reportName, artifacts) {
+                const modalHtml = `
+                    <div id="artifactsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 12px; max-width: 90vw; max-height: 90vh; overflow-y: auto; padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3>📸 Test Artifacts: ${reportName}</h3>
+                                <button onclick="document.getElementById('artifactsModal').remove()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer;">✕ Close</button>
+                            </div>
+                            ${artifacts.screenshots.length > 0 ? this.renderScreenshots(artifacts.screenshots) : '<p>No screenshots found</p>'}
+                            ${artifacts.videos.length > 0 ? this.renderVideos(artifacts.videos) : '<p>No videos found</p>'}
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+
+            renderScreenshots(screenshots) {
+                return `
+                    <div style="margin-bottom: 24px;">
+                        <h4>📸 Screenshots (${screenshots.length})</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
+                            ${screenshots.map(screenshot => `
+                                <div style="text-align: center; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                                    <img src="${screenshot.path}" alt="${screenshot.name}" loading="lazy" style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 8px;">
+                                    <p style="font-size: 12px; color: #6b7280; margin: 0;">${this.formatScreenshotType(screenshot.type)}</p>
+                                    <a href="${screenshot.path}" target="_blank" style="font-size: 12px; color: #4f46e5;">View Full Size</a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderVideos(videos) {
+                return `
+                    <div>
+                        <h4>🎥 Videos (${videos.length})</h4>
+                        <div style="margin-top: 12px;">
+                            ${videos.map(video => `
+                                <div style="margin-bottom: 16px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                    <p><strong>${video.name}</strong> (${this.formatFileSize(video.size)})</p>
+                                    <video controls preload="metadata" style="max-width: 100%; height: auto;">
+                                        <source src="${video.path}" type="video/webm">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div style="margin-top: 8px;">
+                                        <a href="${video.path}" download style="color: #4f46e5; text-decoration: none;">⬇️ Download Video</a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            formatScreenshotType(type) {
+                const typeMap = {
+                    'initial': '🏁 Initial View',
+                    'scroll': '📜 Scroll Step',
+                    'debug': '🔍 Debug',
+                    'before_login': '🔐 Before Login',
+                    'after_login': '✅ After Login',
+                    'other': '📷 Other'
+                };
+                return typeMap[type] || '📷 Screenshot';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+
+        // Initialize dashboard when DOM is loaded
+        let dashboard;
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboard = new PageSpeedDashboard();
+            window.dashboard = dashboard;
+        });
+    </script>
+</body>
+</html>
