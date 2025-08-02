@@ -5,12 +5,19 @@
   "main": "dashboard-server.js",
   "scripts": {
     "start": "node dashboard-server.js",
+    "start:optimized": "node dashboard-server-optimized.js",
     "test:perf": "playwright test --project=performance",
+    "test:perf:optimized": "playwright test performance-optimized.spec.ts --project=performance --workers=2",
     "test": "playwright test",
-    "dashboard": "node dashboard-server.js"
+    "dashboard": "node dashboard-server.js",
+    "dashboard:optimized": "node dashboard-server-optimized.js",
+    "install:compression": "npm install compression",
+    "benchmark": "node performance-benchmark.js",
+    "health": "curl http://localhost:8899/api/health"
   },
   "dependencies": {
     "@playwright/test": "^1.40.0",
+    "compression": "^1.8.1",
     "express": "^4.21.2",
     "lighthouse": "^12.7.1",
     "playwright": "^1.53.2",

@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-08-02T09:47:59.749Z",
+  "benchmarks": [
+    {
+      "name": "Bundle Sizes",
+      "results": {
+        "dashboard.html": {
+          "bytes": 37860,
+          "formatted": "36.97 KB"
+        },
+        "dashboard-optimized.html": {
+          "bytes": 28141,
+          "formatted": "27.48 KB"
+        },
+        "dashboard-server.js": {
+          "bytes": 23921,
+          "formatted": "23.36 KB"
+        },
+        "dashboard-server-optimized.js": {
+          "bytes": 20104,
+          "formatted": "19.63 KB"
+        },
+        "package-lock.json": {
+          "bytes": 133302,
+          "formatted": "130.18 KB"
+        }
+      }
+    },
+    {
+      "name": "File Operations",
+      "results": {
+        "sync": {
+          "write": 0.08,
+          "read": 0.08
+        },
+        "async": {
+          "write": 0.74,
+          "read": 0.27
+        }
+      }
+    },
+    {
+      "name": "Server Startup",
+      "results": {
+        "original": 74.1,
+        "optimized": "failed"
+      }
+    }
+  ],
+  "summary": {
+    "totalBenchmarkTime": 5079.12,
+    "completedBenchmarks": 3,
+    "finalMemoryUsage": {
+      "rss": 47,
+      "heapUsed": 5,
+      "heapTotal": 6,
+      "external": 2
+    }
+  }
+}
