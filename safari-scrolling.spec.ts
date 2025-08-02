@@ -448,7 +448,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 <strong>Viewport:</strong> ${pageInfo.viewport?.width || 'N/A'}x${pageInfo.viewport?.height || 'N/A'}
             </div>
             <div class="info-item">
-                <strong>Orientation:</strong> ${config.scrollingConfig?.orientation?.charAt(0).toUpperCase() + config.scrollingConfig?.orientation?.slice(1) || 'Portrait'}
+                <strong>Orientation:</strong> ${ORIENTATION.charAt(0).toUpperCase() + ORIENTATION.slice(1)}
             </div>
             <div class="info-item">
                 <strong>Location:</strong> Manila, Philippines
