@@ -9,9 +9,10 @@
   },
   "scrollingConfig": {
     "loginUrl": "https://mymetricon-nextjs-dev.vercel.app/",
-    "dashboardUrl": "https://mymetricon-nextjs-dev.vercel.app/dashboard/999999",
+    "dashboardUrl": "https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract",
+    "contractId": "999999",
     "email": "pio@ypdigital.com.au",
     "password": "YPD1g1t4l*",
-    "orientation": "landscape"
+    "orientation": "portrait"
   }
 }

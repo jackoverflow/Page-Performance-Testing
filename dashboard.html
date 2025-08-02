@@ -422,6 +422,10 @@
                         <input type="url" id="dashboardUrl" class="threshold-input" value="https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract" placeholder="https://example.com/dashboard">
                     </div>
                     <div class="threshold-group">
+                        <label for="contractId">Contract ID</label>
+                        <input type="text" id="contractId" class="threshold-input" value="" placeholder="e.g. 752662">
+                    </div>
+                    <div class="threshold-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" class="threshold-input" value="pio@ypdigital.com.au" placeholder="user@example.com">
                     </div>
@@ -543,6 +547,7 @@
                 return {
                     loginUrl: document.getElementById('loginUrl').value.trim(),
                     dashboardUrl: document.getElementById('dashboardUrl').value.trim(),
+                    contractId: document.getElementById('contractId').value.trim(),
                     email: document.getElementById('email').value.trim(),
                     password: document.getElementById('password').value.trim(),
                     orientation: document.getElementById('orientation').value
@@ -662,8 +667,13 @@
                 
                 // Validate scrolling configuration
                 if (!scrollingConfig.loginUrl || !scrollingConfig.dashboardUrl || !scrollingConfig.email || !scrollingConfig.password || !scrollingConfig.orientation) {
-                    this.showStatus('Please fill in all scrolling configuration fields (Login URL, Dashboard URL, Email, Password, Orientation)', 'error');
+                    this.showStatus('Please fill in all required scrolling configuration fields (Login URL, Dashboard URL, Email, Password, Orientation)', 'error');
                     return;
+                }
+                
+                // Contract ID is optional but log if it's provided
+                if (scrollingConfig.contractId) {
+                    console.log('Contract ID provided:', scrollingConfig.contractId);
                 }
                 
                 // Check if Metricon dashboard URL is included

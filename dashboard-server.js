@@ -131,6 +131,7 @@ app.post('/api/run-scrolling-tests', async (req, res) => {
             scrollingConfig: scrollingConfig || {
                 loginUrl: 'https://mymetricon-nextjs-dev.vercel.app/',
                 dashboardUrl: 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract',
+                contractId: '',
                 email: 'pio@ypdigital.com.au',
                 password: 'YPD1g1t4l*',
                 orientation: 'portrait'

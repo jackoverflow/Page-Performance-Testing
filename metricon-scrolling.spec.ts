@@ -29,6 +29,7 @@ if (fs.existsSync(configPath)) {
 const scrollingConfig = config.scrollingConfig || {};
 const LOGIN_URL = scrollingConfig.loginUrl || 'https://mymetricon-nextjs-dev.vercel.app/';
 const DASHBOARD_URL = scrollingConfig.dashboardUrl || 'https://mymetricon-nextjs-dev.vercel.app/dashboard/select-contract';
+const CONTRACT_ID = scrollingConfig.contractId || '';
 const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
 const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
 const ORIENTATION = scrollingConfig.orientation || 'portrait';
@@ -146,34 +147,87 @@ test.describe('Metricon Dashboard Safari iPhone 16 Scrolling Tests', () => {
                 });
                 console.log(`Contract selection screenshot saved to: ${contractSelectionScreenshot}`);
                 
-                // Try to find and click the first contract
-                const contractFound = await page.evaluate(() => {
-                    // Try various selectors that might contain contract IDs
-                    const selectors = [
-                        '.contract-item', '[data-testid="contract-item"]', '.contract-card',
-                        'a[href*="/dashboard/"]', 'button[data-contract-id]', '[data-contract]'
-                    ];
+                let contractFound = false;
+                
+                // If a specific Contract ID was provided, try to use it first
+                if (CONTRACT_ID) {
+                    console.log(`Specific Contract ID provided: ${CONTRACT_ID}, attempting to select it...`);
                     
-                    for (const selector of selectors) {
-                        const elements = document.querySelectorAll(selector);
-                        if (elements.length > 0) {
-                            // Click the first contract element
-                            elements[0].click();
+                    try {
+                        // Try to find and click the specific contract by ID
+                        contractFound = await page.evaluate((contractId) => {
+                            // Try various ways to find the specific contract
+                            const selectors = [
+                                `[data-contract-id="${contractId}"]`,
+                                `[data-contract="${contractId}"]`,
+                                `a[href*="/dashboard/${contractId}"]`,
+                                `button[data-id="${contractId}"]`,
+                                `div[id*="${contractId}"]`
+                            ];
+                            
+                            for (const selector of selectors) {
+                                const element = document.querySelector(selector);
+                                if (element) {
+                                    element.click();
+                                    return true;
+                                }
+                            }
+                            
+                            // Try to find by text content
+                            const elements = document.querySelectorAll('a, button, div');
+                            for (const element of elements) {
+                                if (element.textContent && element.textContent.includes(contractId)) {
+                                    element.click();
+                                    return true;
+                                }
+                            }
+                            
+                            return false;
+                        }, CONTRACT_ID);
+                        
+                        if (contractFound) {
+                            console.log(`Successfully selected contract with ID: ${CONTRACT_ID}`);
+                        } else {
+                            console.log(`Could not find contract with ID: ${CONTRACT_ID}, will try fallback methods`);
+                        }
+                    } catch (error) {
+                        console.log(`Error trying to select specific contract: ${error.message}`);
+                    }
+                }
+                
+                // If no specific contract was found or provided, try to select any contract
+                if (!contractFound) {
+                    console.log('Attempting to select any available contract...');
+                    
+                    // Try to find and click the first contract
+                    contractFound = await page.evaluate(() => {
+                        // Try various selectors that might contain contract IDs
+                        const selectors = [
+                            '.contract-item', '[data-testid="contract-item"]', '.contract-card',
+                            'a[href*="/dashboard/"]', 'button[data-contract-id]', '[data-contract]'
+                        ];
+                        
+                        for (const selector of selectors) {
+                            const elements = document.querySelectorAll(selector);
+                            if (elements.length > 0) {
+                                // Click the first contract element
+                                elements[0].click();
+                                return true;
+                            }
+                        }
+                        
+                        // If no selectors worked, try to find any element with href containing /dashboard/
+                        const links = Array.from(document.querySelectorAll('a'));
+                        const dashboardLink = links.find(link => link.href && link.href.includes('/dashboard/') && !link.href.includes('/select-contract'));
+                        
+                        if (dashboardLink) {
+                            dashboardLink.click();
                             return true;
                         }
-                    }
-                    
-                    // If no selectors worked, try to find any element with href containing /dashboard/
-                    const links = Array.from(document.querySelectorAll('a'));
-                    const dashboardLink = links.find(link => link.href && link.href.includes('/dashboard/') && !link.href.includes('/select-contract'));
-                    
-                    if (dashboardLink) {
-                        dashboardLink.click();
-                        return true;
-                    }
-                    
-                    return false;
-                });
+                        
+                        return false;
+                    });
+                }
                 
                 if (contractFound) {
                     console.log('Contract selected, waiting for navigation...');

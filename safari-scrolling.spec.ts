@@ -93,6 +93,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
             const EMAIL = scrollingConfig.email || 'pio@ypdigital.com.au';
             const PASSWORD = scrollingConfig.password || 'YPD1g1t4l*';
             const ORIENTATION = scrollingConfig.orientation || 'portrait';
+            const CONTRACT_ID = scrollingConfig.contractId || '';
 
             // Define viewport based on orientation
             const getViewportForOrientation = (orientation: string) => {
@@ -204,8 +205,47 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
               });
               console.log(`Contract selection screenshot saved to: ${contractSelectionScreenshot}`);
               
-              // Try to find and click the first contract
-              const contractFound = await page.evaluate(() => {
+              // Try to find and click the contract
+              const contractFound = await page.evaluate((contractId) => {
+                console.log('Looking for contract with ID:', contractId);
+                
+                // If we have a specific contract ID to look for
+                if (contractId) {
+                  // Try to find contract by ID using various selectors
+                  const selectors = [
+                    `.contract-item[data-contract-id="${contractId}"]`, 
+                    `[data-testid="contract-item-${contractId}"]`,
+                    `[data-contract="${contractId}"]`,
+                    `[data-contract-id="${contractId}"]`,
+                    `a[href*="/dashboard/${contractId}"]`
+                  ];
+                  
+                  // Try each selector
+                  for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                      console.log('Found contract element with selector:', selector);
+                      element.click();
+                      return true;
+                    }
+                  }
+                  
+                  // If no exact match found, try to find by text content
+                  const allPossibleElements = document.querySelectorAll('.contract-item, [data-testid="contract-item"], .contract-card, a[href*="/dashboard/"], button, [data-contract]');
+                  for (const element of allPossibleElements) {
+                    if (element.textContent && element.textContent.includes(contractId)) {
+                      console.log('Found contract by text content match');
+                      element.click();
+                      return true;
+                    }
+                  }
+                  
+                  console.log('Could not find contract with ID:', contractId);
+                }
+                
+                // Fallback to selecting first available contract
+                console.log('Falling back to selecting first available contract');
+                
                 // Try various selectors that might contain contract IDs
                 const selectors = [
                   '.contract-item', '[data-testid="contract-item"]', '.contract-card',
@@ -231,7 +271,7 @@ test.describe('Safari iPhone 16 Scrolling Tests', () => {
                 }
                 
                 return false;
-              });
+              }, CONTRACT_ID);
               
               if (contractFound) {
                 console.log('Contract selected, waiting for navigation...');
